@@ -1,5 +1,5 @@
 import { Global, Module } from "@nestjs/common";
-import { HelperBot } from "./helperbot.service";
+import { HelperBot } from "./helper-bot.service";
 import { ConfigService } from "@nestjs/config";
 
 @Global()
@@ -7,4 +7,4 @@ import { ConfigService } from "@nestjs/config";
   providers: [ConfigService, HelperBot],
   exports: [HelperBot],
 })
-export class DiscordModule {}
+export class DiscordClientsModule {}

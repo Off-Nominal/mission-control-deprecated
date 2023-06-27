@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import { HelperBot } from "../discord-clients/helperbot.service";
+import { HelperBot } from "../discord-clients/helper-bot.service";
 import { Cron } from "@nestjs/schedule";
 import { ConfigService } from "@nestjs/config";
 import { fillMessageCache, getGuild } from "src/helpers";
