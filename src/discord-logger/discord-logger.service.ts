@@ -23,15 +23,16 @@ type Log = {
 };
 
 class DiscordLogger {
+  private logs: Log[] = [];
+  private date: Date = new Date();
+
   constructor(
     private client: Client,
     private module: string,
     private method: string,
     private channel: string,
     private end: () => void,
-    private baseError: (message: any, stack?: string, context?: string) => void,
-    private logs: Log[] = [],
-    private date: Date = new Date()
+    private baseError: (message: any, stack?: string, context?: string) => void
   ) {}
 
   public success(message: string) {
