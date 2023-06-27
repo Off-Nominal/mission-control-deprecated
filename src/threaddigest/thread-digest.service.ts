@@ -50,6 +50,7 @@ export class ThreadDigestService {
   })
   async sendThreadDigest() {
     const log = this.loggerService.new("Thread Digest Send");
+    log.error("test error", "this should be int he console");
 
     const guild = getGuild(
       this.client,

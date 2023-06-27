@@ -2,7 +2,7 @@ import { Module } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
 import configuration from "./config/configuration";
 import { ScheduleModule } from "@nestjs/schedule";
-import { DiscordModule } from "./helperbot/discord.module";
+import { DiscordModule } from "./discord-clients/discord.module";
 import { DiscordLoggerModule } from "./discord-logger/discord-logger.module";
 import { ThreadDigestModule } from "./thread-digest/thread-digest.module";
 

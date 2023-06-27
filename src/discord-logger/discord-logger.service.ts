@@ -7,7 +7,7 @@ import {
   TimestampStyles,
   time,
 } from "discord.js";
-import { HelperBot } from "src/helperbot/helperbot.service";
+import { HelperBot } from "src/discord-clients/helperbot.service";
 
 export enum LogIcon {
   SUCCESS = "✅",
