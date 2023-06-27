@@ -2,8 +2,9 @@ import { Module } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
 import configuration from "./config/configuration";
 import { ScheduleModule } from "@nestjs/schedule";
-import { ThreadDigestModule } from "./threaddigest/threaddigest.module";
 import { DiscordModule } from "./helperbot/discord.module";
+import { DiscordLoggerModule } from "./discord-logger/discord-logger.module";
+import { ThreadDigestModule } from "./thread-digest/thread-digest.module";
 
 @Module({
   imports: [
@@ -12,6 +13,7 @@ import { DiscordModule } from "./helperbot/discord.module";
     }),
     ScheduleModule.forRoot(),
     DiscordModule,
+    DiscordLoggerModule,
     ThreadDigestModule,
   ],
   providers: [],

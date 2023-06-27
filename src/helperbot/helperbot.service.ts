@@ -26,7 +26,6 @@ export class HelperBot extends Client {
     this.login(this.configService.get<string>("discordClients.tokens.helper"));
 
     this.once("ready", () => {
-      console.log("Helper Bot Ready");
       this.user.setPresence(generatePresenceData("/help"));
 
       const guild = getGuild(this, this.configService.get<string>("guildId"));
