@@ -36,24 +36,20 @@ type ThreadDigests = {
 
 @Injectable()
 export class ThreadDigestService {
-  private readonly logger = new Logger(ThreadDigestService.name);
-
   constructor(
     private client: HelperBot,
     private configService: ConfigService,
     private loggerService: DiscordLoggerService
-  ) {}
+  ) {
+    this.loggerService.setContext(ThreadDigestService.name);
+  }
 
   @Cron("*/5 * * * * *", {
     name: "threadDigest",
     timeZone: "America/New_York",
   })
   async sendThreadDigest() {
-    const log = this.loggerService.new(
-      "Thread Digest Send",
-      ThreadDigestService.name,
-      (err: any) => this.logger.error(err)
-    );
+    const log = this.loggerService.new("Thread Digest Send");
 
     const guild = getGuild(
       this.client,
@@ -98,7 +94,7 @@ export class ThreadDigestService {
       );
       const errors = settledPromises.filter(isRejected).map((p) => p.reason);
       for (const error of errors) {
-        this.logger.error(error);
+        this.loggerService.error(error);
       }
     }
 

@@ -56,7 +56,9 @@ class DiscordLogger {
       timestamp: new Date(),
       message,
     });
-    this.baseError(err);
+    if (err) {
+      this.baseError(err, this.module);
+    }
   }
 
   public warning(message: string) {
@@ -96,25 +98,23 @@ class DiscordLogger {
 }
 
 @Injectable()
-export class DiscordLoggerService {
+export class DiscordLoggerService extends ConsoleLogger {
   private logs: Record<string, DiscordLogger> = {};
 
-  constructor(private client: HelperBot, private config: ConfigService) {}
+  constructor(private client: HelperBot, private config: ConfigService) {
+    super();
+  }
 
-  new(
-    method: string,
-    module: string,
-    error: (message: any, stack?: string, context?: string) => void
-  ) {
+  new(method: string) {
     const id = Math.random().toString(16).slice(2, 8);
 
     this.logs[id] = new DiscordLogger(
       this.client,
-      module,
+      this.context,
       method,
       this.config.get<string>("guildChannels.bots"),
       () => this.end(id),
-      error
+      this.error.bind(this)
     );
     return this.logs[id];
   }
