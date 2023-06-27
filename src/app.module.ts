@@ -10,6 +10,7 @@ import { ThreadDigestModule } from "./thread-digest/thread-digest.module";
   imports: [
     ConfigModule.forRoot({
       load: [configuration],
+      isGlobal: true,
     }),
     ScheduleModule.forRoot(),
     DiscordClientsModule,

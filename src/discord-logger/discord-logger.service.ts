@@ -1,4 +1,4 @@
-import { ConsoleLogger, Injectable, Logger } from "@nestjs/common";
+import { ConsoleLogger, Inject, Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import {
   ChannelType,
@@ -102,7 +102,11 @@ class DiscordLogger {
 export class DiscordLoggerService extends ConsoleLogger {
   private logs: Record<string, DiscordLogger> = {};
 
-  constructor(private client: HelperBot, private config: ConfigService) {
+  constructor(
+    @Inject("HELPER_BOT")
+    private client: HelperBot,
+    private config: ConfigService
+  ) {
     super();
   }
 

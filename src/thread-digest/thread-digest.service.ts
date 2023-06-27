@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common";
+import { Inject, Injectable } from "@nestjs/common";
 import { HelperBot } from "../discord-clients/helper-bot.service";
 import { Cron } from "@nestjs/schedule";
 import { ConfigService } from "@nestjs/config";
@@ -37,6 +37,7 @@ type ThreadDigests = {
 @Injectable()
 export class ThreadDigestService {
   constructor(
+    @Inject("HELPER_BOT")
     private client: HelperBot,
     private configService: ConfigService,
     private loggerService: DiscordLoggerService
@@ -44,7 +45,7 @@ export class ThreadDigestService {
     this.loggerService.setContext(ThreadDigestService.name);
   }
 
-  @Cron("*/5 * * * * *", {
+  @Cron("0 0 8 * * *", {
     name: "threadDigest",
     timeZone: "America/New_York",
   })
