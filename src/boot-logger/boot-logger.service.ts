@@ -4,7 +4,7 @@ import {
   DiscordLogger,
   DiscordLoggerService,
 } from "src/discord-logger/discord-logger.service";
-import { BootEvent } from "src/types/events";
+import { BootEvent } from "./boot-logger.event";
 
 type BootLog = {
   // db: boolean;
