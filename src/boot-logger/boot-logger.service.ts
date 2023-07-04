@@ -4,6 +4,7 @@ import {
   DiscordLogger,
   DiscordLoggerService,
 } from "src/discord-logger/discord-logger.service";
+import { BootEvent } from "src/types/events";
 
 type BootLog = {
   // db: boolean;
@@ -76,7 +77,7 @@ export class BootLogger {
         this.bootAttempts++;
       }
 
-      if (this.bootAttempts > 15) {
+      if (this.bootAttempts > MAX_BOOT_ATTEMPTS) {
         let failures = "";
 
         for (const item in this.bootLog) {
@@ -95,12 +96,12 @@ export class BootLogger {
   }
 
   @OnEvent("boot")
-  logBootload(payload: {
-    key: keyof BootLog;
-    status: boolean;
-    message: string;
-  }) {
-    this.log.success(payload.message);
+  logBootload(payload: BootEvent) {
+    if (payload.status) {
+      this.log.success(payload.message);
+    } else {
+      this.log.error(payload.message);
+    }
     this.bootLog[payload.key] = payload.status;
   }
 }

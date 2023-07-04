@@ -1,8 +1,9 @@
-import { Injectable, Logger } from "@nestjs/common";
+import { Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { EventEmitter2 } from "@nestjs/event-emitter";
 import { Client, GatewayIntentBits, Partials } from "discord.js";
 import { generatePresenceData, getGuild } from "src/helpers";
+import { handleError } from "src/helpers/handleError";
 
 @Injectable()
 export class HelperBot extends Client {
@@ -31,10 +32,13 @@ export class HelperBot extends Client {
 
     // Boot errors
     this.once("error", (err) => {
+      const [error] = handleError(err);
+      console.error(err);
+
       this.eventEmitter.emit("boot", {
         key: "helperBot",
         status: false,
-        message: err,
+        message: error,
       });
     });
 
@@ -55,7 +59,12 @@ export class HelperBot extends Client {
           });
         })
         .catch((err) => {
-          this.eventEmitter.emit("boot", { key: "helperBot", status: false });
+          const [error] = handleError(err);
+          this.eventEmitter.emit("boot", {
+            key: "helperBot",
+            status: false,
+            message: error,
+          });
         });
     });
   }
