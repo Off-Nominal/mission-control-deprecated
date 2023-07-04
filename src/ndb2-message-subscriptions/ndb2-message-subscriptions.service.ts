@@ -1,17 +1,17 @@
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
-import { User } from "./users.entity";
+import { Ndb2MessageSubscription } from "./ndb2-message-subscriptions.entity";
 
 @Injectable()
-export class UsersService {
+export class Ndb2MessageSubscriptionService {
   constructor(
-    @InjectRepository(User)
-    private usersRepository: Repository<User>
+    @InjectRepository(Ndb2MessageSubscription)
+    private ndb2MsgSubService: Repository<Ndb2MessageSubscription>
   ) {}
 
-  findAll(): Promise<User[]> {
-    return this.usersRepository.find();
+  findAll(): Promise<Ndb2MessageSubscription[]> {
+    return this.ndb2MsgSubService.find();
   }
 
   // findOne(id: number): Promise<User | null> {

@@ -7,4 +7,10 @@ export class User {
 
   @Column()
   discord_id: string;
+
+  @Column()
+  new_event: boolean;
+
+  @Column()
+  pre_notification: boolean;
 }
