@@ -5,6 +5,8 @@ import { ScheduleModule } from "@nestjs/schedule";
 import { DiscordClientsModule } from "./discord-clients/discord-clients.module";
 import { DiscordLoggerModule } from "./discord-logger/discord-logger.module";
 import { ThreadDigestModule } from "./thread-digest/thread-digest.module";
+import { EventEmitterModule } from "@nestjs/event-emitter";
+import { BootLogger } from "./boot-logger/boot-logger.service";
 
 @Module({
   imports: [
@@ -13,10 +15,11 @@ import { ThreadDigestModule } from "./thread-digest/thread-digest.module";
       isGlobal: true,
     }),
     ScheduleModule.forRoot(),
+    EventEmitterModule.forRoot(),
     DiscordClientsModule,
     DiscordLoggerModule,
     ThreadDigestModule,
   ],
-  providers: [],
+  providers: [BootLogger],
 })
 export class AppModule {}

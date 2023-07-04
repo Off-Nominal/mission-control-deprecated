@@ -19,6 +19,7 @@ import {
 import { sub } from "date-fns";
 import { isFulfilled, isRejected } from "src/types/typeguards";
 import { DiscordLoggerService } from "src/discord-logger/discord-logger.service";
+import { EventEmitter2 } from "@nestjs/event-emitter";
 
 type ThreadData = {
   thread: ThreadChannel;
@@ -37,7 +38,6 @@ type ThreadDigests = {
 @Injectable()
 export class ThreadDigestService {
   constructor(
-    @Inject("HELPER_BOT")
     private client: HelperBot,
     private configService: ConfigService,
     private loggerService: DiscordLoggerService

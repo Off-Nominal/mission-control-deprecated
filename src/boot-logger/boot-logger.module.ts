@@ -1,9 +1,9 @@
 import { Global, Module } from "@nestjs/common";
-import { HelperBot } from "./helper-bot.service";
+import { BootLogger } from "./boot-logger.service";
 
 @Global()
 @Module({
-  providers: [HelperBot],
-  exports: [HelperBot],
+  providers: [BootLogger],
+  exports: [BootLogger],
 })
 export class DiscordClientsModule {}

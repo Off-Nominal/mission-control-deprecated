@@ -1,4 +1,4 @@
-import { ConsoleLogger, Inject, Injectable, Logger } from "@nestjs/common";
+import { ConsoleLogger, Inject, Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import {
   ChannelType,
@@ -22,7 +22,7 @@ type Log = {
   timestamp: Date;
 };
 
-class DiscordLogger {
+export class DiscordLogger {
   private logs: Log[] = [];
   private date: Date = new Date();
 
@@ -102,11 +102,7 @@ class DiscordLogger {
 export class DiscordLoggerService extends ConsoleLogger {
   private logs: Record<string, DiscordLogger> = {};
 
-  constructor(
-    @Inject("HELPER_BOT")
-    private client: HelperBot,
-    private config: ConfigService
-  ) {
+  constructor(private client: HelperBot, private config: ConfigService) {
     super();
   }
 
