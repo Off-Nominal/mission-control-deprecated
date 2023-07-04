@@ -7,6 +7,7 @@ import { DiscordLoggerModule } from "./discord-logger/discord-logger.module";
 import { ThreadDigestModule } from "./thread-digest/thread-digest.module";
 import { EventEmitterModule } from "@nestjs/event-emitter";
 import { BootLogger } from "./boot-logger/boot-logger.service";
+import { TypeOrmModule } from "@nestjs/typeorm";
 
 @Module({
   imports: [
@@ -14,6 +15,16 @@ import { BootLogger } from "./boot-logger/boot-logger.service";
       load: [configuration],
       isGlobal: true,
     }),
+    // TypeOrmModule.forRoot({
+    //   type: "postgres",
+    //   host: "localhost",
+    //   port: 3306,
+    //   username: "root",
+    //   password: "root",
+    //   database: "test",
+    //   entities: [],
+    //   // synchronize: true,
+    // }),
     ScheduleModule.forRoot(),
     EventEmitterModule.forRoot(),
     DiscordClientsModule,
