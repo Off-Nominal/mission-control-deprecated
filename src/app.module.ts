@@ -1,5 +1,5 @@
 import { Module } from "@nestjs/common";
-import { ConfigModule } from "@nestjs/config";
+import { ConfigModule, ConfigService } from "@nestjs/config";
 import configuration from "./config/configuration";
 import { ScheduleModule } from "@nestjs/schedule";
 import { DiscordClientsModule } from "./discord-clients/discord-clients.module";
@@ -8,6 +8,8 @@ import { ThreadDigestModule } from "./thread-digest/thread-digest.module";
 import { EventEmitterModule } from "@nestjs/event-emitter";
 import { BootLogger } from "./boot-logger/boot-logger.service";
 import { TypeOrmModule } from "@nestjs/typeorm";
+import { User } from "./users/users.entity";
+import { UsersModule } from "./users/users.module";
 
 @Module({
   imports: [
@@ -15,16 +17,17 @@ import { TypeOrmModule } from "@nestjs/typeorm";
       load: [configuration],
       isGlobal: true,
     }),
-    // TypeOrmModule.forRoot({
-    //   type: "postgres",
-    //   host: "localhost",
-    //   port: 3306,
-    //   username: "root",
-    //   password: "root",
-    //   database: "test",
-    //   entities: [],
-    //   // synchronize: true,
-    // }),
+    UsersModule,
+    TypeOrmModule.forRootAsync({
+      imports: [ConfigModule],
+      useFactory: (configService: ConfigService) => ({
+        type: "postgres",
+        url: configService.get<string>("database.url"),
+        entities: [User],
+        // synchronize: true,
+      }),
+      inject: [ConfigService],
+    }),
     ScheduleModule.forRoot(),
     EventEmitterModule.forRoot(),
     DiscordClientsModule,

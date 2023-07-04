@@ -14,15 +14,15 @@ export default () => ({
     },
   },
   guildChannels: {
-    livechat: process.env.LIVECHATCHANNELID,
-    bocachica: process.env.BOCACHICACHANNELID,
-    content: process.env.CONTENTCHANNELID,
-    announcements: process.env.ANNOUNCEMENTSCHANNELID,
-    general: process.env.GENERALCHANNELID,
-    mods: process.env.MODSCHANNELID,
-    news: process.env.NEWS_CHANNEL_ID,
-    bots: process.env.BOTS_CHANNEL_ID,
-    splashdown: process.env.SPLASHDOWN_CHANNEL_ID,
+    livechat: process.env.CHANNELID_LIVECHAT,
+    bocachica: process.env.CHANNELID_BOCACHICA,
+    content: process.env.CHANNELID_CONTENT,
+    announcements: process.env.CHANNELID_ANNOUNCEMENTS,
+    general: process.env.CHANNELID_GENERAL,
+    mods: process.env.CHANNELID_MODS,
+    news: process.env.CHANNELID_NEWS,
+    bots: process.env.CHANNELID_BOTS,
+    splashdown: process.env.CHANNELID_SPLASHDOWN,
   },
   guildId: process.env.GUILD_ID,
   guildRoleIds: {
@@ -71,6 +71,7 @@ export default () => ({
     password: process.env.PGPASSWORD,
     database: process.env.PGDATABASE,
     port: process.env.PGPORT,
+    url: process.env.DATABASE_URL,
   },
   sanity: {
     cmsId: process.env.SANITY_CMS_ID,
@@ -83,6 +84,6 @@ export default () => ({
     },
   },
   starshipSiteTracker: {
-    branch: process.env.STARSHIP_SITE_TRACKER_BRANCH || 'master',
+    branch: process.env.STARSHIP_SITE_TRACKER_BRANCH || "master",
   },
 });
