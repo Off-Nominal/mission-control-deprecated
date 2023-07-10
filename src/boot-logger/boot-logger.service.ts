@@ -9,9 +9,9 @@ import { BootEvent } from "./boot-logger.event";
 type BootLog = {
   // db: boolean;
   helperBot: boolean;
-  // contentBot: boolean;
-  // eventBot: boolean;
-  // ndb2Bot: boolean;
+  contentBot: boolean;
+  eventsBot: boolean;
+  ndb2Bot: boolean;
   // starshipSiteChecker: boolean;
   // wmFeedListener: boolean;
   // mecoFeedListener: boolean;
@@ -34,9 +34,9 @@ export class BootLogger {
   private bootLog: BootLog = {
     // db: false,
     helperBot: false,
-    // contentBot: false,
-    // eventBot: false,
-    // ndb2Bot: false,
+    contentBot: false,
+    eventsBot: false,
+    ndb2Bot: false,
     // starshipSiteChecker: false,
     // wmFeedListener: false,
     // mecoFeedListener: false,
