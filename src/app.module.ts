@@ -12,6 +12,7 @@ import { UsersModule } from "./users/users.module";
 import { Ndb2MessageSubscriptionModule } from "./ndb2-message-subscriptions/ndb2-message-subscriptions.module";
 import { EventsManagerModule } from "./events-manager/events-manager.module";
 import { NotificationsModule } from "./notifications/notifications.module";
+import { RSSModule } from "./rss/rss.module";
 
 @Module({
   imports: [
@@ -38,6 +39,7 @@ import { NotificationsModule } from "./notifications/notifications.module";
     ThreadDigestModule,
     EventsManagerModule,
     NotificationsModule,
+    RSSModule,
   ],
   providers: [BootLogger],
 })

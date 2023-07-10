@@ -1,4 +1,7 @@
 export default () => ({
+  node: {
+    env: process.env.NODE_ENV || "development",
+  },
   discordClients: {
     tokens: {
       helper: process.env.HELPER_BOT_TOKEN_ID,

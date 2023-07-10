@@ -23,7 +23,6 @@ import { ThreadData, ThreadDigests } from "./thread-digest.types";
 export class ThreadDigestService {
   constructor(
     private client: HelperBot,
-    private configService: ConfigService,
     private loggerService: DiscordLoggerService
   ) {
     this.loggerService.setContext(ThreadDigestService.name);
