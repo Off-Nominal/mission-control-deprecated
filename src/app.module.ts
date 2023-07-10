@@ -10,6 +10,7 @@ import { BootLogger } from "./boot-logger/boot-logger.service";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { UsersModule } from "./users/users.module";
 import { Ndb2MessageSubscriptionModule } from "./ndb2-message-subscriptions/ndb2-message-subscriptions.module";
+import { EventsManagerModule } from "./events-manager/events-manager.module";
 
 @Module({
   imports: [
@@ -34,6 +35,7 @@ import { Ndb2MessageSubscriptionModule } from "./ndb2-message-subscriptions/ndb2
     DiscordClientsModule,
     DiscordLoggerModule,
     ThreadDigestModule,
+    EventsManagerModule,
   ],
   providers: [BootLogger],
 })

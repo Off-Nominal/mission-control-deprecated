@@ -1,12 +1,14 @@
 import { Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { EventEmitter2 } from "@nestjs/event-emitter";
-import { Client, GatewayIntentBits } from "discord.js";
+import { Client, GatewayIntentBits, Guild } from "discord.js";
 import { generatePresenceData } from "src/helpers";
 import { handleError } from "src/helpers/handleError";
 
 @Injectable()
 export class EventsBot extends Client {
+  public guild: Guild;
+
   constructor(
     private configService: ConfigService,
     private eventEmitter: EventEmitter2
@@ -38,6 +40,10 @@ export class EventsBot extends Client {
       this.removeListener("error", () => {});
 
       this.user.setPresence(generatePresenceData("/events help"));
+
+      this.guild = this.guilds.cache.find(
+        (guild) => guild.id === this.configService.get<string>("guildId")
+      );
 
       this.eventEmitter.emit("boot", {
         key: "eventsBot",

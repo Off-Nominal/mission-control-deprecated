@@ -2,7 +2,7 @@ import { Inject, Injectable } from "@nestjs/common";
 import { HelperBot } from "../discord-clients/helper-bot.service";
 import { Cron } from "@nestjs/schedule";
 import { ConfigService } from "@nestjs/config";
-import { fillMessageCache, getGuild } from "src/helpers";
+import { fillMessageCache } from "src/helpers";
 import {
   ChannelType,
   Collection,
@@ -19,7 +19,6 @@ import {
 import { sub } from "date-fns";
 import { isFulfilled, isRejected } from "src/types/typeguards";
 import { DiscordLoggerService } from "src/discord-logger/discord-logger.service";
-import { EventEmitter2 } from "@nestjs/event-emitter";
 
 type ThreadData = {
   thread: ThreadChannel;
@@ -52,16 +51,15 @@ export class ThreadDigestService {
   async sendThreadDigest() {
     const log = this.loggerService.new("Thread Digest Send");
 
-    const guild = getGuild(
-      this.client,
-      this.configService.get<string>("guildId")
+    log.success(
+      `Guild resolved: ${this.client.guild.name} (ID: ${this.client.guild.id})`
     );
-    log.success(`Guild resolved: ${guild.name} (ID: ${guild.id})`);
 
     let activePublicThreads: Collection<Snowflake, ThreadChannel>;
 
     try {
-      const activeThreads = await guild.channels.fetchActiveThreads();
+      const activeThreads =
+        await this.client.guild.channels.fetchActiveThreads();
       log.success(
         `${activeThreads.threads.size} active threads fetched from Discord.`
       );
