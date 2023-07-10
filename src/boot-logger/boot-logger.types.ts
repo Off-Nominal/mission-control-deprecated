@@ -1,5 +1,5 @@
-export class BootEvent {
+export type BootEvent = {
   key: string;
   status: boolean;
   message: string;
-}
+};

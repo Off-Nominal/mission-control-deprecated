@@ -1,4 +1,4 @@
-import { Inject, Injectable } from "@nestjs/common";
+import { Injectable } from "@nestjs/common";
 import { HelperBot } from "../discord-clients/helper-bot.service";
 import { Cron } from "@nestjs/schedule";
 import { ConfigService } from "@nestjs/config";
@@ -8,9 +8,7 @@ import {
   Collection,
   EmbedBuilder,
   Message,
-  NewsChannel,
   Snowflake,
-  TextChannel,
   ThreadChannel,
   channelMention,
   hyperlink,
@@ -19,20 +17,7 @@ import {
 import { sub } from "date-fns";
 import { isFulfilled, isRejected } from "src/types/typeguards";
 import { DiscordLoggerService } from "src/discord-logger/discord-logger.service";
-
-type ThreadData = {
-  thread: ThreadChannel;
-  messageCount: number;
-};
-
-type ThreadDigest = {
-  channel: TextChannel | NewsChannel;
-  threads: ThreadData[];
-};
-
-type ThreadDigests = {
-  [key: string]: ThreadDigest;
-};
+import { ThreadData, ThreadDigests } from "./thread-digest.types";
 
 @Injectable()
 export class ThreadDigestService {

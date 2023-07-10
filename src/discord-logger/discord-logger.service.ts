@@ -1,4 +1,4 @@
-import { ConsoleLogger, Inject, Injectable } from "@nestjs/common";
+import { ConsoleLogger, Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import {
   ChannelType,
@@ -8,19 +8,7 @@ import {
   time,
 } from "discord.js";
 import { HelperBot } from "src/discord-clients/helper-bot.service";
-
-export enum LogIcon {
-  SUCCESS = "✅",
-  FAILURE = "❌",
-  INFO = "💬",
-  WARNING = "⚠️",
-}
-
-type Log = {
-  icon: LogIcon;
-  message: string;
-  timestamp: Date;
-};
+import { Log, LogIcon } from "./discord-logger.types";
 
 export class DiscordLogger {
   private logs: Log[] = [];

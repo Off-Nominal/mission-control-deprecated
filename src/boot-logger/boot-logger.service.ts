@@ -4,7 +4,7 @@ import {
   DiscordLogger,
   DiscordLoggerService,
 } from "src/discord-logger/discord-logger.service";
-import { BootEvent } from "./boot-logger.event";
+import { BootEvent } from "./boot-logger.types";
 
 type BootLog = {
   // db: boolean;
@@ -12,6 +12,7 @@ type BootLog = {
   contentBot: boolean;
   eventsBot: boolean;
   ndb2Bot: boolean;
+  eventsManager: boolean;
   // starshipSiteChecker: boolean;
   // wmFeedListener: boolean;
   // mecoFeedListener: boolean;
@@ -37,6 +38,7 @@ export class BootLogger {
     contentBot: false,
     eventsBot: false,
     ndb2Bot: false,
+    eventsManager: false,
     // starshipSiteChecker: false,
     // wmFeedListener: false,
     // mecoFeedListener: false,

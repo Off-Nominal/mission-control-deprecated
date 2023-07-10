@@ -10,6 +10,7 @@ import { DiscordLoggerService } from "src/discord-logger/discord-logger.service"
 import { NotificationsService } from "src/notifications/notifcations.service";
 import generateEventNotificationEmbed from "./helpers/generateEventNotificationEmbed";
 import { ManagedEvent } from "./events-manager.types";
+import { EventEmitter2 } from "@nestjs/event-emitter";
 
 const FIVE_MINS_IN_MS = 5 * 60 * 1000;
 const THIRTY_MINS_IN_MS = FIVE_MINS_IN_MS * 6;
@@ -20,12 +21,19 @@ export class EventsManagerService {
   constructor(
     private client: EventsBot,
     private notifications: NotificationsService,
-    private loggerService: DiscordLoggerService
+    private loggerService: DiscordLoggerService,
+    private eventEmitter: EventEmitter2
   ) {
     this.loggerService.setContext(EventsManagerService.name);
 
     this.client.on("guildScheduledEventCreate", (event) => {
       this.notify(ManagedEvent.NEW, event);
+    });
+
+    this.eventEmitter.emit("boot", {
+      key: "eventsManager",
+      status: true,
+      message: "Events Manager ready.",
     });
   }
 
