@@ -11,6 +11,7 @@ import { TypeOrmModule } from "@nestjs/typeorm";
 import { UsersModule } from "./users/users.module";
 import { Ndb2MessageSubscriptionModule } from "./ndb2-message-subscriptions/ndb2-message-subscriptions.module";
 import { EventsManagerModule } from "./events-manager/events-manager.module";
+import { NotificationsModule } from "./notifications/notifications.module";
 
 @Module({
   imports: [
@@ -36,6 +37,7 @@ import { EventsManagerModule } from "./events-manager/events-manager.module";
     DiscordLoggerModule,
     ThreadDigestModule,
     EventsManagerModule,
+    NotificationsModule,
   ],
   providers: [BootLogger],
 })
