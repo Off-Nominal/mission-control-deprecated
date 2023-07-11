@@ -1,3 +1,5 @@
+import { SanityDocument } from "@sanity/types";
+
 export interface NewsFeedDocument extends SanityDocument {
   url: string;
   name: string;

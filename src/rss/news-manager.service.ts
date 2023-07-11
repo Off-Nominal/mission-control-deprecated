@@ -7,7 +7,7 @@ import {
   FeedWatcherEvents,
 } from "./feed-watcher/feed-watcher.types";
 import { FeedWatcher } from "./feed-watcher/feed-watcher.utility";
-import { newsFeedMapper } from "./news-manager.utility";
+import { newsFeedMapper, shouldFilter } from "./news-manager.utility";
 import { sub } from "date-fns";
 import { isFulfilled } from "src/types/typeguards";
 import { ContentFeedItem } from "./rss.types";

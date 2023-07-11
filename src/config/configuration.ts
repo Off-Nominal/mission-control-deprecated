@@ -1,6 +1,6 @@
 export default () => ({
   node: {
-    env: process.env.NODE_ENV || "development",
+    env: process.env.NODE_ENV || "dev",
   },
   discordClients: {
     tokens: {
@@ -78,8 +78,11 @@ export default () => ({
   },
   sanity: {
     cmsId: process.env.SANITY_CMS_ID,
-    dataset: process.env.SANITY_DATASET,
-    cdn: process.env.SANITY_CDN || true,
+    dataset: process.env.SANITY_DATASET || "dev",
+    cdn:
+      process.env.SANITY_CDN !== undefined
+        ? process.env.SANITY_CDN === "true"
+        : true,
   },
   ndb2: {
     mechanics: {

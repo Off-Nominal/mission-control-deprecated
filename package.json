@@ -28,11 +28,18 @@
     "@nestjs/platform-express": "^10.0.0",
     "@nestjs/schedule": "^3.0.1",
     "@nestjs/typeorm": "^10.0.0",
+    "@sanity/client": "^6.1.7",
+    "@sanity/image-url": "^1.0.2",
+    "@sanity/types": "^3.14.1",
+    "axios": "^1.4.0",
     "date-fns": "^2.30.0",
     "discord.js": "^14.11.0",
+    "feedparser": "^2.2.10",
+    "filtrex": "^3.0.0",
     "pg": "^8.11.1",
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.8.1",
+    "string-strip-html": "8.5.0",
     "typeorm": "^0.3.17"
   },
   "devDependencies": {

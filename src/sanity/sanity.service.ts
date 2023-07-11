@@ -1,8 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { SanityClient } from "@sanity/client";
-
-const client = require("@sanity/client");
+import { createClient } from "@sanity/client";
 const imageUrlBuilder = require("@sanity/image-url");
 
 @Injectable()
@@ -11,13 +10,12 @@ export class SanityService {
   public imageBuilder: any;
 
   constructor(private configService: ConfigService) {
-    this.client = client({
+    console.log(this.configService.get<string>("sanity.dataset"));
+    this.client = createClient({
       projectId: this.configService.get<string>("sanity.cmsId"),
-      dataset:
-        this.configService.get<string>("sanity.dataset") ||
-        this.configService.get<string>("node.env"),
+      dataset: this.configService.get<string>("sanity.dataset"),
       apiVersion: "2022-06-24",
-      useCdn: this.configService.get<string>("sanity.cdn") || true,
+      useCdn: this.configService.get<string>("sanity.cdn") === "true",
     });
 
     this.imageBuilder = imageUrlBuilder(this.client);
