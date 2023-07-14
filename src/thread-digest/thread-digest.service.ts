@@ -1,7 +1,5 @@
-import { Injectable } from "@nestjs/common";
-import { HelperBot } from "../discord-clients/helper-bot.service";
+import { Inject, Injectable } from "@nestjs/common";
 import { Cron } from "@nestjs/schedule";
-import { ConfigService } from "@nestjs/config";
 import { fillMessageCache } from "src/helpers";
 import {
   ChannelType,
@@ -18,11 +16,16 @@ import { sub } from "date-fns";
 import { isFulfilled, isRejected } from "src/types/typeguards";
 import { DiscordLoggerService } from "src/discord-logger/discord-logger.service";
 import { ThreadData, ThreadDigests } from "./thread-digest.types";
+import {
+  DiscordClient,
+  ExtendedClient,
+} from "src/discord-clients/discord-clients.types";
 
 @Injectable()
 export class ThreadDigestService {
   constructor(
-    private client: HelperBot,
+    @Inject(DiscordClient.HELPER)
+    private client: ExtendedClient,
     private loggerService: DiscordLoggerService
   ) {
     this.loggerService.setContext(ThreadDigestService.name);

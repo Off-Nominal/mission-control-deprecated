@@ -1,21 +1,19 @@
-import { ConsoleLogger, Injectable } from "@nestjs/common";
+import { ConsoleLogger, Inject, Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import {
-  ChannelType,
-  Client,
-  EmbedBuilder,
-  TimestampStyles,
-  time,
-} from "discord.js";
-import { HelperBot } from "src/discord-clients/helper-bot.service";
+import { ChannelType, EmbedBuilder, TimestampStyles, time } from "discord.js";
 import { Log, LogIcon } from "./discord-logger.types";
+import {
+  DiscordClient,
+  ExtendedClient,
+} from "src/discord-clients/discord-clients.types";
 
 export class DiscordLogger {
   private logs: Log[] = [];
   private date: Date = new Date();
 
   constructor(
-    private client: Client,
+    @Inject(DiscordClient.HELPER)
+    private client: ExtendedClient,
     private module: string,
     private method: string,
     private channel: string,
@@ -77,6 +75,10 @@ export class DiscordLogger {
     const embed = this.generateEmbed();
     const channel = await this.client.channels.fetch(this.channel);
 
+    if (!channel) {
+      throw new Error("Could not fetch channel");
+    }
+
     if (channel.type === ChannelType.GuildText) {
       await channel.send({ embeds: [embed] });
       this.end();
@@ -90,7 +92,11 @@ export class DiscordLogger {
 export class DiscordLoggerService extends ConsoleLogger {
   private logs: Record<string, DiscordLogger> = {};
 
-  constructor(private client: HelperBot, private config: ConfigService) {
+  constructor(
+    @Inject(DiscordClient.HELPER)
+    private client: ExtendedClient,
+    private config: ConfigService
+  ) {
     super();
   }
 

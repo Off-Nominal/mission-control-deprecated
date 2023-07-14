@@ -11,11 +11,6 @@ import { ConfigService } from "@nestjs/config";
 
 type BootLog = {
   // db: boolean;
-  helperBot: boolean;
-  contentBot: boolean;
-  eventsBot: boolean;
-  ndb2Bot: boolean;
-  eventsManager: boolean;
   // starshipSiteChecker: boolean;
   [ContentFeed.WEMARTIANS]: boolean;
   // mecoFeedListener: boolean;
@@ -33,14 +28,8 @@ type BootLog = {
 @Injectable()
 export class BootLoggerService {
   private bootAttempts: number = 0;
-  private booted = false;
   private bootLog: BootLog = {
     // db: false,
-    helperBot: false,
-    contentBot: false,
-    eventsBot: false,
-    ndb2Bot: false,
-    eventsManager: false,
     // starshipSiteChecker: false,
     [ContentFeed.WEMARTIANS]: false,
     // mecoFeedListener: false,
@@ -107,6 +96,7 @@ export class BootLoggerService {
 
   @OnEvent("boot")
   logBootload(payload: BootEvent) {
+    console.log(payload);
     if (payload.status) {
       this.log.success(payload.message);
     } else {

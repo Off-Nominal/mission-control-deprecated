@@ -1,12 +1,14 @@
 import { Global, Module } from "@nestjs/common";
-import { HelperBot } from "./helper-bot.service";
-import { ContentBot } from "./content-bot-service";
-import { EventsBot } from "./events-bot.service";
-import { NDB2Bot } from "./ndb2-bot.service";
+import { DiscordClient } from "./discord-clients.types";
+import { generateClientProvider } from "./discord-clients.utility";
+
+const providers = Object.values(DiscordClient).map((clientName) =>
+  generateClientProvider(clientName)
+);
 
 @Global()
 @Module({
-  providers: [HelperBot, ContentBot, EventsBot, NDB2Bot],
-  exports: [HelperBot, ContentBot, EventsBot, NDB2Bot],
+  providers: [...providers],
+  exports: [...providers],
 })
 export class DiscordClientsModule {}

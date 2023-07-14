@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common";
+import { Inject, Injectable } from "@nestjs/common";
 import { DiscordLoggerService } from "src/discord-logger/discord-logger.service";
 import { CmsNewsFeed, NewsFeedDocument } from "./news-manager.types";
 import { FeedParserEntry } from "./feed-watcher/feed-watcher.types";
@@ -7,12 +7,15 @@ import { newsFeedMapper, shouldFilter } from "./news-manager.utility";
 import { isAfter, sub } from "date-fns";
 import { ContentFeedItem } from "./rss.types";
 import { SanityService } from "src/sanity/sanity.service";
-import { ContentBot } from "src/discord-clients/content-bot-service";
 import { EventEmitter2 } from "@nestjs/event-emitter";
 import { ChannelType, NewsChannel } from "discord.js";
 import { ConfigService } from "@nestjs/config";
 import { createUniqueResultEmbed } from "./rss.utility";
 import { SchedulerRegistry } from "@nestjs/schedule";
+import {
+  DiscordClient,
+  ExtendedClient,
+} from "src/discord-clients/discord-clients.types";
 
 @Injectable()
 export class NewsManagerService {
@@ -23,10 +26,11 @@ export class NewsManagerService {
     '*[_type == "newsFeed"]{name, filter, _id, diagnostic, thumbnail, url}';
 
   constructor(
+    @Inject(DiscordClient.CONTENT)
+    private client: ExtendedClient,
     private schedulerRegistry: SchedulerRegistry,
     private loggerService: DiscordLoggerService,
     private sanityService: SanityService,
-    private client: ContentBot,
     private eventEmitter: EventEmitter2,
     private configService: ConfigService
   ) {

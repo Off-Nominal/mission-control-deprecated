@@ -43,7 +43,7 @@ import * as Joi from "joi";
     DiscordLoggerModule,
     DiscordClientsModule,
     ThreadDigestModule,
-    EventsManagerModule,
+    // EventsManagerModule,
     // NotificationsModule,
     // RSSModule,
   ],
