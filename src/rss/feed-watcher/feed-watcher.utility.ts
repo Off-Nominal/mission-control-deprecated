@@ -6,10 +6,12 @@ import {
   FeedWatcherEvent,
   FeedWatcherOptions,
 } from "./feed-watcher.types";
+import { CronExpression, SchedulerRegistry } from "@nestjs/schedule";
+import { CronJob } from "cron";
 const FeedParser = require("feedparser");
 
 const DEFAULT_RETRY_ATTEMPTS = 3;
-const DEFAULT_RETRY_WAIT_TIME_IN_SECONDS = 5;
+const DEFAULT_RETRY_WAIT_TIME_IN_SECONDS = 1;
 
 export class FeedWatcher extends EventEmitter {
   // Typed events
@@ -31,7 +33,11 @@ export class FeedWatcher extends EventEmitter {
     permalink?: string;
   };
 
-  constructor(private feedurl: string, options: FeedWatcherOptions = {}) {
+  constructor(
+    private schedulerRegistry: SchedulerRegistry,
+    private feedurl: string,
+    options: FeedWatcherOptions = {}
+  ) {
     super();
     this.options = options;
     this.lastEntry = {};
@@ -82,6 +88,13 @@ export class FeedWatcher extends EventEmitter {
         .then((entries) => {
           this.lastEntry.date = entries[0].pubDate;
           this.lastEntry.permalink = entries[0].link;
+
+          const job = new CronJob(CronExpression.EVERY_30_SECONDS, () => {
+            this.updateEntries();
+          });
+          this.schedulerRegistry.addCronJob(`updateFeed[${this.feedurl}]`, job);
+          job.start();
+
           this.emit("ready", entries);
         })
         .catch((err) => {
@@ -91,12 +104,11 @@ export class FeedWatcher extends EventEmitter {
               url: this.feedurl,
               attempts: this.options.attempts,
             });
-            return;
+          } else {
+            setTimeout(() => {
+              fetcher();
+            }, retryTime);
           }
-
-          setTimeout(() => {
-            fetcher();
-          }, retryTime);
         });
     };
 
@@ -124,5 +136,12 @@ export class FeedWatcher extends EventEmitter {
           url: this.feedurl,
         });
       });
+  }
+
+  public stop() {
+    const job = this.schedulerRegistry.getCronJob(
+      `updateFeed[${this.feedurl}]`
+    );
+    job.stop();
   }
 }

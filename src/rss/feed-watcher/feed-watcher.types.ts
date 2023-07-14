@@ -5,7 +5,6 @@ export enum FeedParserEvents {
 }
 
 export type FeedWatcherOptions = {
-  interval?: number;
   attempts?: number;
   retryTime?: number;
 };

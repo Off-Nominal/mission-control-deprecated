@@ -1,14 +1,10 @@
 import { Injectable } from "@nestjs/common";
 import { DiscordLoggerService } from "src/discord-logger/discord-logger.service";
 import { CmsNewsFeed, NewsFeedDocument } from "./news-manager.types";
-import {
-  FeedParserEntry,
-  FeedWatcherEvents,
-} from "./feed-watcher/feed-watcher.types";
+import { FeedParserEntry } from "./feed-watcher/feed-watcher.types";
 import { FeedWatcher } from "./feed-watcher/feed-watcher.utility";
 import { newsFeedMapper, shouldFilter } from "./news-manager.utility";
-import { sub } from "date-fns";
-import { isFulfilled } from "src/types/typeguards";
+import { isAfter, sub } from "date-fns";
 import { ContentFeedItem } from "./rss.types";
 import { SanityService } from "src/sanity/sanity.service";
 import { ContentBot } from "src/discord-clients/content-bot-service";
@@ -16,18 +12,18 @@ import { EventEmitter2 } from "@nestjs/event-emitter";
 import { ChannelType, NewsChannel } from "discord.js";
 import { ConfigService } from "@nestjs/config";
 import { createUniqueResultEmbed } from "./rss.utility";
-
-const FEED_INTERVAL = 60; // five minutes interval for checking news sources
+import { SchedulerRegistry } from "@nestjs/schedule";
 
 @Injectable()
 export class NewsManagerService {
-  private feeds: CmsNewsFeed[] = [];
+  private feeds = new Map<string, CmsNewsFeed>();
   private channel: NewsChannel;
   private entryUrls: { [key: string]: boolean } = {};
   private query: string =
     '*[_type == "newsFeed"]{name, filter, _id, diagnostic, thumbnail, url}';
 
   constructor(
+    private schedulerRegistry: SchedulerRegistry,
     private loggerService: DiscordLoggerService,
     private sanityService: SanityService,
     private client: ContentBot,
@@ -36,36 +32,22 @@ export class NewsManagerService {
   ) {
     this.loggerService.setContext(NewsManagerService.name);
 
-    const channelFetch = this.client.channels
-      .fetch(this.configService.get<string>("guildChannels.news"))
-      .then((channel) => {
-        if (channel.type !== ChannelType.GuildAnnouncement) {
-          throw new Error(
-            `News Manager target channel is not type Announcements.`
-          );
-        }
-        this.channel = channel;
-        return "Successfully fetched news channel";
-      });
-
     this.subscribeToCms(this.query);
 
-    const queryFetch = this.queryCms(this.query).then((promises) => {
-      const totalSubs = promises.length;
-      const successfulSubs = promises.filter(isFulfilled).length;
-      if (successfulSubs > 0) {
-        return `Successfully subscribed to ${successfulSubs}/${totalSubs} news feeds.`;
-      } else {
-        throw new Error(`Failure to subscribe to any News Feeds.`);
+    this.getFeeds(this.query).then((feeds) => {
+      for (const feed of feeds) {
+        this.subscribe(feed);
       }
     });
 
-    Promise.all([channelFetch, queryFetch])
-      .then(([channelMsg, queryMessage]) => {
+    Promise.all([this.fetchChannel(), this.initialize()])
+      .then(([channel, feedInitMessage]) => {
+        this.channel = channel;
+
         this.eventEmitter.emit("boot", {
           key: "newsManager",
           status: true,
-          message: queryMessage,
+          message: feedInitMessage,
         });
       })
       .catch((err) => {
@@ -77,84 +59,119 @@ export class NewsManagerService {
       });
   }
 
-  private watcherGenerator = (feed: NewsFeedDocument) => {
-    const { url, name, thumbnail, diagnostic } = feed;
-
-    return new FeedWatcher(url, { interval: FEED_INTERVAL })
-      .on(FeedWatcherEvents.NEW, (entries: FeedParserEntry[]) => {
-        entries.forEach((entry) => {
-          if (shouldFilter(entry, feed)) {
-            return console.log("Filtered out a value: ", entry.link);
-          }
-
-          if (this.entryUrls[entry.link]) {
-            return console.log("Duplicate story: ", entry.link);
-          }
-
-          this.entryUrls[entry.link] = true;
-          diagnostic && console.log(entry);
-          this.notifyNew(newsFeedMapper(entry, name, thumbnail));
-        });
-      })
-      .on(FeedWatcherEvents.ERROR, (error) => {
-        console.error(`Error reading news Feed: ${name}`, error);
-      });
-  };
-
-  public initiateWatcher(feed: NewsFeedDocument): Promise<string> {
+  private subscribe(feed: NewsFeedDocument) {
     const thumbnail = feed.thumbnail
       ? this.sanityService.imageBuilder.image(feed.thumbnail).url()
       : "";
-    const formattedFeed = {
-      ...feed,
-      thumbnail,
-    };
-    const watcher = this.watcherGenerator(formattedFeed);
-    const thresholdDate = sub(new Date(), { days: 3 });
 
-    return watcher
-      .start()
-      .then((entries) => {
-        const recentEntries = entries.filter(
-          (entry) => entry.pubDate.getTime() > thresholdDate.getTime()
+    this.feeds.set(feed._id, {
+      data: { ...feed, thumbnail },
+      watcher: this.createWatcher(feed),
+      status: "starting",
+    });
+  }
+
+  private fetchChannel() {
+    console.log(this.client.channels);
+    return this.client.channels
+      .fetch(this.configService.get<string>("guildChannels.news"))
+      .then((channel) => {
+        console.log(this.client.channels);
+        if (channel.type !== ChannelType.GuildAnnouncement) {
+          throw new Error(
+            `News Manager target channel is not type Announcements.`
+          );
+        }
+        return channel;
+      });
+  }
+
+  private initialize() {
+    return new Promise((resolve, reject) => {
+      const checker = () => {
+        let successes = 0;
+        let isReady = true;
+
+        for (const _id in this.feeds) {
+          if (this.feeds.get(_id).status === "starting") {
+            isReady = false;
+            break;
+          }
+
+          if (this.feeds.get(_id).status === "ready") {
+            successes++;
+          }
+        }
+
+        if (!isReady) {
+          setTimeout(() => {
+            checker();
+          }, 1200);
+          return;
+        }
+
+        if (successes === 0) {
+          return reject(`Failure to subscribe to any News Feeds.`);
+        }
+
+        resolve(
+          `Successfully subscribed to ${successes}/${this.feeds.size} news feeds.`
         );
-        recentEntries.forEach((entry) => (this.entryUrls[entry.link] = true));
-        this.feeds.push({
-          data: formattedFeed,
-          watcher,
-        });
-        return feed.name;
-      })
-      .catch((error) => {
-        console.error(error);
-        throw feed.name;
-      });
+      };
+
+      checker();
+    });
   }
 
-  public queryCms(query: string) {
-    return this.sanityService.client
-      .fetch<NewsFeedDocument[]>(query)
-      .then((feeds) => {
-        const promises = feeds.map((feed) => this.initiateWatcher(feed));
-        return Promise.allSettled(promises);
-      });
+  private getFeeds(query: string) {
+    return this.sanityService.client.fetch<NewsFeedDocument[]>(query);
   }
 
-  private fetchFeedIndex(id: string) {
-    return this.feeds.findIndex((feed) => feed.data._id === id);
+  private handleReady(entries: FeedParserEntry[]) {
+    const thresholdDate: Date = sub(new Date(), { days: 3 });
+
+    const recentEntries = entries.filter((entry) =>
+      isAfter(entry.pubDate, thresholdDate)
+    );
+    recentEntries.forEach((entry) => (this.entryUrls[entry.link] = true));
   }
 
-  private deleteFeed(id: string) {
-    const feedIndex = this.fetchFeedIndex(id);
+  private createWatcher(feed: NewsFeedDocument) {
+    const watcher = new FeedWatcher(this.schedulerRegistry, feed.url);
 
-    if (feedIndex < 0) {
+    watcher.on("ready", (entries) => {
+      this.feeds.get(feed._id).status = "ready";
+      this.handleReady(entries);
+    });
+
+    watcher.on("init_error", (err) => {
+      this.feeds.get(feed._id).status = "error";
+    });
+
+    watcher.on("new", (entries) => {
+      for (const entry of entries) {
+        this.handleNew(entry, feed);
+      }
+    });
+
+    watcher.start();
+
+    return watcher;
+  }
+
+  private handleNew(entry: FeedParserEntry, feed: NewsFeedDocument) {
+    if (shouldFilter(entry, feed) || this.entryUrls[entry.link]) {
       return;
     }
 
-    const feed = this.feeds[feedIndex];
-    feed.watcher.stop();
-    this.feeds.splice(feedIndex, 1);
-    console.log(`Stopped monitoring ${feed.data.name}`);
+    this.entryUrls[entry.link] = true;
+    feed.diagnostic && console.log(entry);
+    this.notifyNew(newsFeedMapper(entry, feed.name, feed.thumbnail));
+  }
+
+  private unsubscribe(feedId: string) {
+    this.feeds[feedId].watcher.stop();
+    this.feeds.delete(feedId);
   }
 
   public subscribeToCms(query: string) {
@@ -165,14 +182,14 @@ export class NewsManagerService {
           const id = update.documentId;
 
           if ("createOrReplace" in mutation) {
-            this.deleteFeed(id);
-            this.initiateWatcher(update.result);
+            this.unsubscribe(id);
+            this.subscribe(update.result);
           }
           if ("create" in mutation) {
-            this.initiateWatcher(update.result);
+            this.subscribe(update.result);
           }
           if ("delete" in mutation) {
-            this.deleteFeed(id);
+            this.unsubscribe(id);
           }
         });
       });

@@ -12,4 +12,5 @@ export interface NewsFeedDocument extends SanityDocument {
 export type CmsNewsFeed = {
   data: NewsFeedDocument;
   watcher: any;
+  status: "starting" | "ready" | "error";
 };
