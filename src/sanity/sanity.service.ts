@@ -10,7 +10,6 @@ export class SanityService {
   public imageBuilder: any;
 
   constructor(private configService: ConfigService) {
-    console.log(this.configService.get<string>("sanity.dataset"));
     this.client = createClient({
       projectId: this.configService.get<string>("sanity.cmsId"),
       dataset: this.configService.get<string>("sanity.dataset"),

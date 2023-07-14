@@ -1,6 +1,9 @@
 export default () => ({
+  general: {
+    bootAttempts: process.env.NODE_ENV === "development" ? 3 : 15,
+  },
   node: {
-    env: process.env.NODE_ENV || "dev",
+    env: process.env.NODE_ENV,
   },
   discordClients: {
     tokens: {

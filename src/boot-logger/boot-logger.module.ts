@@ -1,9 +1,9 @@
 import { Global, Module } from "@nestjs/common";
-import { BootLogger } from "./boot-logger.service";
+import { BootLoggerService } from "./boot-logger.service";
 
 @Global()
 @Module({
-  providers: [BootLogger],
-  exports: [BootLogger],
+  providers: [BootLoggerService],
+  exports: [BootLoggerService],
 })
-export class DiscordClientsModule {}
+export class BootLoggerModule {}

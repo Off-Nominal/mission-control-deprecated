@@ -72,11 +72,9 @@ export class NewsManagerService {
   }
 
   private fetchChannel() {
-    console.log(this.client.channels);
     return this.client.channels
       .fetch(this.configService.get<string>("guildChannels.news"))
       .then((channel) => {
-        console.log(this.client.channels);
         if (channel.type !== ChannelType.GuildAnnouncement) {
           throw new Error(
             `News Manager target channel is not type Announcements.`

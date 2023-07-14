@@ -5,6 +5,9 @@ import {
   DiscordLoggerService,
 } from "src/discord-logger/discord-logger.service";
 import { BootEvent } from "./boot-logger.types";
+import { ContentFeed } from "src/rss/rss.types";
+import { Cron, SchedulerRegistry } from "@nestjs/schedule";
+import { ConfigService } from "@nestjs/config";
 
 type BootLog = {
   // db: boolean;
@@ -14,7 +17,7 @@ type BootLog = {
   ndb2Bot: boolean;
   eventsManager: boolean;
   // starshipSiteChecker: boolean;
-  // wmFeedListener: boolean;
+  [ContentFeed.WEMARTIANS]: boolean;
   // mecoFeedListener: boolean;
   // ofnFeedListener: boolean;
   // rprFeedListener: boolean;
@@ -22,16 +25,15 @@ type BootLog = {
   // hhFeedListener: boolean;
   // ytFeedListener: boolean;
   // eventsListener: boolean;
-  // newsFeed: boolean;
+  newsManager: boolean;
   // rllClient: boolean;
   // controller: boolean;
 };
 
-const MAX_BOOT_ATTEMPTS = 15;
-
 @Injectable()
-export class BootLogger {
+export class BootLoggerService {
   private bootAttempts: number = 0;
+  private booted = false;
   private bootLog: BootLog = {
     // db: false,
     helperBot: false,
@@ -40,7 +42,7 @@ export class BootLogger {
     ndb2Bot: false,
     eventsManager: false,
     // starshipSiteChecker: false,
-    // wmFeedListener: false,
+    [ContentFeed.WEMARTIANS]: false,
     // mecoFeedListener: false,
     // ofnFeedListener: false,
     // rprFeedListener: false,
@@ -48,53 +50,59 @@ export class BootLogger {
     // hhFeedListener: false,
     // ytFeedListener: false,
     // eventsListener: false,
-    // newsFeed: false,
+    newsManager: false,
     // rllClient: false,
     // controller: false,
   };
   private log: DiscordLogger;
 
-  constructor(private loggerService: DiscordLoggerService) {
-    this.loggerService.setContext(BootLogger.name);
-
+  constructor(
+    private loggerService: DiscordLoggerService,
+    private scheduleRegistry: SchedulerRegistry,
+    private configService: ConfigService
+  ) {
+    this.loggerService.setContext(BootLoggerService.name);
     this.log = this.loggerService.new("Boot Log");
+  }
 
-    const interval = setInterval(() => {
-      let booted = true;
+  @Cron("* * * * * *", {
+    name: "bootLog",
+  })
+  public checkBoot() {
+    this.bootAttempts++;
+
+    if (
+      this.bootAttempts >=
+      this.configService.get<number>("general.bootAttempts")
+    ) {
+      let failures = "";
 
       for (const item in this.bootLog) {
         if (!this.bootLog[item]) {
-          booted = false;
-          break;
+          failures += `- ❌: ${item}`;
         }
       }
 
-      if (booted) {
-        this.log.success(
-          "Boot Checklist complete. The Off-Nominal Discord Bot is online."
-        );
-        this.log.send();
-        clearInterval(interval);
-      } else {
-        this.bootAttempts++;
+      this.log.error(
+        `Boot Checklist still incomplete after ${this.configService.get<number>(
+          "general.bootAttempts"
+        )} attempts, logger aborted. Failed items:\n${failures}`
+      );
+      this.log.send();
+      this.scheduleRegistry.deleteCronJob("bootLog");
+    }
+
+    for (const item in this.bootLog) {
+      if (!this.bootLog[item]) {
+        return;
       }
+    }
 
-      if (this.bootAttempts > MAX_BOOT_ATTEMPTS) {
-        let failures = "";
-
-        for (const item in this.bootLog) {
-          if (!this.bootLog[item]) {
-            failures += `- ❌: ${item}`;
-          }
-        }
-
-        this.log.error(
-          `Boot Checklist still incomplete after 15 attempts, logger aborted. Failed items:\n${failures}`
-        );
-        this.log.send();
-        clearInterval(interval);
-      }
-    }, 1000);
+    this.log.success(
+      "Boot Checklist complete. The Off-Nominal Discord Bot is online."
+    );
+    this.log.send();
+    this.scheduleRegistry.deleteCronJob("bootLog");
   }
 
   @OnEvent("boot")
