@@ -1,5 +1,4 @@
 import { Injectable } from "@nestjs/common";
-import { EventEmitter } from "events";
 import { DiscordLoggerService } from "src/discord-logger/discord-logger.service";
 import { CmsNewsFeed, NewsFeedDocument } from "./news-manager.types";
 import {
@@ -21,7 +20,7 @@ import { createUniqueResultEmbed } from "./rss.utility";
 const FEED_INTERVAL = 60; // five minutes interval for checking news sources
 
 @Injectable()
-export class NewsManagerService extends EventEmitter {
+export class NewsManagerService {
   private feeds: CmsNewsFeed[] = [];
   private channel: NewsChannel;
   private entryUrls: { [key: string]: boolean } = {};
@@ -35,7 +34,6 @@ export class NewsManagerService extends EventEmitter {
     private eventEmitter: EventEmitter2,
     private configService: ConfigService
   ) {
-    super();
     this.loggerService.setContext(NewsManagerService.name);
 
     const channelFetch = this.client.channels

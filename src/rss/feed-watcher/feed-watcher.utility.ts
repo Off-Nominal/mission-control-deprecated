@@ -3,37 +3,37 @@ import axios from "axios";
 import {
   FeedParserEntry,
   FeedParserEvents,
-  FeedWatcherEvents,
-  RobustWatcherOptions,
+  FeedWatcherEvent,
+  FeedWatcherOptions,
 } from "./feed-watcher.types";
 const FeedParser = require("feedparser");
 
-const DEFAULT_FEED_CHECK_TIME_IN_SECONDS = 60;
 const DEFAULT_RETRY_ATTEMPTS = 3;
 const DEFAULT_RETRY_WAIT_TIME_IN_SECONDS = 5;
 
 export class FeedWatcher extends EventEmitter {
-  private feedurl: string;
-  private interval: number;
-  private timer: null | NodeJS.Timer;
+  // Typed events
+  private _untypedOn = this.on;
+  private _untypedEmit = this.emit;
+  public on = <K extends keyof FeedWatcherEvent>(
+    event: K,
+    listener: FeedWatcherEvent[K]
+  ): this => this._untypedOn(event, listener);
+  public emit = <K extends keyof FeedWatcherEvent>(
+    event: K,
+    ...args: Parameters<FeedWatcherEvent[K]>
+  ): boolean => this._untypedEmit(event, ...args);
+
   private loadAttempts: number = 0;
-  private options: RobustWatcherOptions;
+  private options: FeedWatcherOptions;
   private lastEntry: {
     date?: Date;
     permalink?: string;
   };
 
-  constructor(feedurl: string, options: RobustWatcherOptions = {}) {
+  constructor(private feedurl: string, options: FeedWatcherOptions = {}) {
     super();
-
-    if (!feedurl || typeof feedurl !== "string") {
-      throw new Error("Feed url must be defined.");
-    }
-
-    this.feedurl = feedurl;
-    this.interval = options.interval || DEFAULT_FEED_CHECK_TIME_IN_SECONDS;
     this.options = options;
-    this.timer = null;
     this.lastEntry = {};
   }
 
@@ -42,7 +42,7 @@ export class FeedWatcher extends EventEmitter {
       const entries: FeedParserEntry[] = [];
 
       const feedParser = new FeedParser()
-        .on(FeedParserEvents.ERROR, (err) => console.error(err))
+        .on(FeedParserEvents.ERROR, (err) => reject(err))
         .on(FeedParserEvents.READABLE, () => {
           let item: FeedParserEntry;
           while ((item = feedParser.read())) {
@@ -71,62 +71,58 @@ export class FeedWatcher extends EventEmitter {
     });
   }
 
-  public start(): Promise<FeedParserEntry[]> {
+  public start(): void {
     const attempts = this.options.attempts || DEFAULT_RETRY_ATTEMPTS;
     const retryTime =
       (this.options.retryTime || DEFAULT_RETRY_WAIT_TIME_IN_SECONDS) * 1000;
 
-    return new Promise((resolve, reject) => {
-      const fetcher = (resolver) => {
-        this.loadAttempts++;
-        this.fetchEntries()
-          .then((entries) => {
-            this.lastEntry.date = entries[0].pubDate;
-            this.lastEntry.permalink = entries[0].link;
-            this.timer = this.watch();
-            resolver(entries);
-          })
-          .catch((err) => {
-            if (attempts <= this.loadAttempts) {
-              console.error(`Tried loading ${this.feedurl} ${attempts} times`);
-              return reject(err);
-            }
-
-            setTimeout(() => {
-              fetcher(resolver);
-            }, retryTime);
-          });
-      };
-      fetcher(resolve);
-    });
-  }
-
-  public stop() {
-    clearInterval(this.timer);
-    this.emit(FeedWatcherEvents.STOP);
-  }
-
-  private watch() {
-    const fetch = () => {
+    const fetcher = () => {
+      this.loadAttempts++;
       this.fetchEntries()
         .then((entries) => {
-          const newEntries = entries.filter(
-            (entry) =>
-              entry.pubDate > this.lastEntry.date &&
-              entry.link !== this.lastEntry.permalink
-          );
-
-          if (newEntries.length > 0) {
-            this.lastEntry.date = newEntries[0].pubDate;
-            this.lastEntry.permalink = newEntries[0].link;
-            this.emit(FeedWatcherEvents.NEW, newEntries);
-          }
+          this.lastEntry.date = entries[0].pubDate;
+          this.lastEntry.permalink = entries[0].link;
+          this.emit("ready", entries);
         })
-        .catch((err) => this.emit(err));
+        .catch((err) => {
+          if (attempts <= this.loadAttempts) {
+            this.emit("init_error", {
+              error: err,
+              url: this.feedurl,
+              attempts: this.options.attempts,
+            });
+            return;
+          }
+
+          setTimeout(() => {
+            fetcher();
+          }, retryTime);
+        });
     };
 
-    return setInterval(() => {
-      fetch();
-    }, this.interval * 1000);
+    fetcher();
+  }
+
+  public updateEntries(): void {
+    this.fetchEntries()
+      .then((entries) => {
+        const newEntries = entries.filter(
+          (entry) =>
+            entry.pubDate > this.lastEntry.date &&
+            entry.link !== this.lastEntry.permalink
+        );
+
+        if (newEntries.length > 0) {
+          this.lastEntry.date = newEntries[0].pubDate;
+          this.lastEntry.permalink = newEntries[0].link;
+          this.emit("new", newEntries);
+        }
+      })
+      .catch((err) => {
+        this.emit("read_error", {
+          error: err,
+          url: this.feedurl,
+        });
+      });
   }
 }

@@ -4,7 +4,7 @@ export enum FeedParserEvents {
   END = "end",
 }
 
-export type RobustWatcherOptions = {
+export type FeedWatcherOptions = {
   interval?: number;
   attempts?: number;
   retryTime?: number;
@@ -104,8 +104,15 @@ export type FeedParserEntry = {
   meta: Meta;
 };
 
-export enum FeedWatcherEvents {
-  NEW = "new",
-  STOP = "stop",
-  ERROR = "error",
+type FeedWatcherError = {
+  error: any;
+  url: string;
+  attempts?: number;
+};
+
+export interface FeedWatcherEvent {
+  ready: (entries: FeedParserEntry[]) => void;
+  new: (entries: FeedParserEntry[]) => void;
+  init_error: (error: FeedWatcherError) => void;
+  read_error: (error: FeedWatcherError) => void;
 }
