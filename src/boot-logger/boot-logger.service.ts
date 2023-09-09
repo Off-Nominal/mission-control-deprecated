@@ -8,17 +8,22 @@ import { BootEvent } from "./boot-logger.types";
 import { ContentFeed } from "src/rss/rss.types";
 import { Cron, SchedulerRegistry } from "@nestjs/schedule";
 import { ConfigService } from "@nestjs/config";
+import { DiscordClient } from "src/discord-clients/discord-clients.types";
 
 type BootLog = {
   // db: boolean;
+  [DiscordClient.HELPER]: boolean;
+  [DiscordClient.CONTENT]: boolean;
+  [DiscordClient.EVENTS]: boolean;
+  [DiscordClient.NDB2]: boolean;
   // starshipSiteChecker: boolean;
   [ContentFeed.WEMARTIANS]: boolean;
-  // mecoFeedListener: boolean;
-  // ofnFeedListener: boolean;
-  // rprFeedListener: boolean;
-  // hlFeedListener: boolean;
-  // hhFeedListener: boolean;
-  // ytFeedListener: boolean;
+  [ContentFeed.RPR]: boolean;
+  [ContentFeed.MECO]: boolean;
+  [ContentFeed.HEADLINES]: boolean;
+  [ContentFeed.OFFNOMINAL_PODCAST]: boolean;
+  [ContentFeed.OFFNOMINAL_HAPPY_HOUR]: boolean;
+  [ContentFeed.OFFNOMINAL_YT]: boolean;
   // eventsListener: boolean;
   newsManager: boolean;
   // rllClient: boolean;
@@ -30,14 +35,18 @@ export class BootLoggerService {
   private bootAttempts: number = 0;
   private bootLog: BootLog = {
     // db: false,
+    [DiscordClient.HELPER]: true, // critical dependency
+    [DiscordClient.CONTENT]: false,
+    [DiscordClient.EVENTS]: false,
+    [DiscordClient.NDB2]: false,
     // starshipSiteChecker: false,
     [ContentFeed.WEMARTIANS]: false,
-    // mecoFeedListener: false,
-    // ofnFeedListener: false,
-    // rprFeedListener: false,
-    // hlFeedListener: false,
-    // hhFeedListener: false,
-    // ytFeedListener: false,
+    [ContentFeed.RPR]: false,
+    [ContentFeed.MECO]: false,
+    [ContentFeed.HEADLINES]: false,
+    [ContentFeed.OFFNOMINAL_PODCAST]: false,
+    [ContentFeed.OFFNOMINAL_HAPPY_HOUR]: false,
+    [ContentFeed.OFFNOMINAL_YT]: false,
     // eventsListener: false,
     newsManager: false,
     // rllClient: false,
@@ -68,7 +77,7 @@ export class BootLoggerService {
 
       for (const item in this.bootLog) {
         if (!this.bootLog[item]) {
-          failures += `- ❌: ${item}`;
+          failures += `- ❌ ${item}\n`;
         }
       }
 
@@ -96,7 +105,6 @@ export class BootLoggerService {
 
   @OnEvent("boot")
   logBootload(payload: BootEvent) {
-    console.log(payload);
     if (payload.status) {
       this.log.success(payload.message);
     } else {

@@ -43,9 +43,9 @@ import * as Joi from "joi";
     DiscordLoggerModule,
     DiscordClientsModule,
     ThreadDigestModule,
-    // EventsManagerModule,
-    // NotificationsModule,
-    // RSSModule,
+    EventsManagerModule,
+    NotificationsModule,
+    RSSModule,
   ],
   providers: [BootLoggerService],
 })

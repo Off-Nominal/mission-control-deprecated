@@ -1,4 +1,5 @@
 export const handleError = (err: unknown): [string, number | null] => {
+  console.log(err);
   // if (axios.isAxiosError(err)) {
   //   if (!err.response || !err.response.data) {
   //     return [t("error.no_response"), null, null];

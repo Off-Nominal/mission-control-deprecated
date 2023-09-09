@@ -1,80 +1,14 @@
-import { GatewayIntentBits, Partials } from "discord.js";
-import { DiscordClient } from "src/discord-clients/discord-clients.types";
-
-export type DiscordClientConfig = {
-  token: string;
-  appId: string;
-  presenceData: string;
-  prefetchMembers: boolean;
-  partials: Partials[];
-  intents: GatewayIntentBits[];
-};
+import { discordClients } from "./discord-client.configuration";
+import { rssFeeds } from "./content.configuration";
 
 export default () => ({
   general: {
-    bootAttempts: process.env.NODE_ENV === "development" ? 3 : 15,
+    bootAttempts: process.env.NODE_ENV === "development" ? 5 : 15,
   },
   node: {
     env: process.env.NODE_ENV,
   },
-  discordClients: {
-    [DiscordClient.HELPER]: {
-      token: process.env.HELPER_BOT_TOKEN_ID,
-      appId: process.env.HELPER_BOT_APP_ID,
-      presenceData: "/help",
-      partials: [
-        Partials.Message,
-        Partials.Channel,
-        Partials.Reaction,
-        Partials.GuildMember,
-      ],
-      intents: [
-        GatewayIntentBits.Guilds,
-        GatewayIntentBits.GuildMessages,
-        GatewayIntentBits.DirectMessages,
-        GatewayIntentBits.GuildMembers,
-        GatewayIntentBits.GuildMessageReactions,
-        GatewayIntentBits.MessageContent,
-      ],
-    },
-    [DiscordClient.EVENTS]: {
-      token: process.env.EVENTS_BOT_TOKEN_ID,
-      appId: process.env.EVENTS_BOT_APP_ID,
-      presenceData: "/events help",
-      prefetchMembers: false,
-      partials: [],
-      intents: [
-        GatewayIntentBits.Guilds,
-        GatewayIntentBits.GuildMessages,
-        GatewayIntentBits.DirectMessages,
-        GatewayIntentBits.GuildScheduledEvents,
-      ],
-    },
-    [DiscordClient.CONTENT]: {
-      token: process.env.CONTENT_BOT_TOKEN_ID,
-      appId: process.env.CONTENT_BOT_APP_ID,
-      presenceData: "/content help",
-      prefetchMembers: false,
-      partials: [],
-      intents: [
-        GatewayIntentBits.Guilds,
-        GatewayIntentBits.GuildMessages,
-        GatewayIntentBits.DirectMessages,
-      ],
-    },
-    [DiscordClient.NDB2]: {
-      token: process.env.NDB2_BOT_TOKEN_ID,
-      appId: process.env.NDB2_BOT_APP_ID,
-      presenceData: "/ndb help",
-      prefetchMembers: false,
-      partials: [],
-      intents: [
-        GatewayIntentBits.Guilds,
-        GatewayIntentBits.GuildMessages,
-        GatewayIntentBits.DirectMessages,
-      ],
-    },
-  },
+  discordClients,
   guildChannels: {
     livechat: process.env.CHANNELID_LIVECHAT,
     bocachica: process.env.CHANNELID_BOCACHICA,
@@ -100,15 +34,7 @@ export default () => ({
     discord_anomaly: process.env.ANOMALY_ROLE_ID,
     dicsord_never_fly_rideshare: process.env.NFRS_ROLE_ID,
   },
-  rssFeeds: {
-    wemartians: process.env.WMFEED,
-    red_planet_review: process.env.RPRFEED,
-    meco: process.env.MECOFEED,
-    meco_headlines: process.env.HLFEED,
-    offnominal_podcast: process.env.OFNFEED,
-    offnominal_happyhour: process.env.HHFEED,
-    offnominal_youtube: process.env.OFN_YT_FEED,
-  },
+  rssFeeds,
   apiKeys: {
     rapid_api: process.env.RAPID_API_KEY,
     youtube: process.env.YT_API_KEY,

@@ -1,7 +1,36 @@
 import { EmbedBuilder } from "discord.js";
-import { ContentFeedItem } from "./rss.types";
+import { ContentFeed, ContentFeedItem } from "./rss.types";
 import { FeedParserEntry } from "./feed-watcher/feed-watcher.types";
 import { stripHtml } from "string-strip-html";
+import { Provider } from "@nestjs/common";
+import { ContentListener } from "./content-listener/content-listener.service";
+import { ConfigService } from "@nestjs/config";
+import { EventEmitter2 } from "@nestjs/event-emitter";
+import { SchedulerRegistry } from "@nestjs/schedule";
+import { ContentFeedConfig } from "src/config/content.configuration";
+
+export const generateContentFeedProvider = (feed: ContentFeed): Provider => {
+  const provider: Provider = {
+    provide: feed,
+    useFactory: (
+      configService: ConfigService,
+      eventEmitter: EventEmitter2,
+      schedulerRegistry: SchedulerRegistry
+    ) => {
+      const { url, mapper, searchOptions } =
+        configService.get<ContentFeedConfig>(`rssFeeds.${feed}`);
+
+      return new ContentListener(eventEmitter, schedulerRegistry, url, {
+        searchOptions,
+        token: feed,
+        mapper,
+      });
+    },
+    inject: [ConfigService, EventEmitter2, SchedulerRegistry],
+  };
+
+  return provider;
+};
 
 export const createUniqueResultEmbed = (feedItem: ContentFeedItem) => {
   const { author, title, url, description, summary, date, thumbnail, source } =

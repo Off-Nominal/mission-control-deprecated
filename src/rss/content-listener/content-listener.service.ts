@@ -1,8 +1,5 @@
-// import { GuildScheduledEvent, GuildScheduledEventStatus } from "discord.js";
-// import { FeedWatcherEvents } from "../feed-watcher/feed-watcher.types";
 import Fuse from "fuse.js";
 import { ContentListenerOptions } from "./content-listener.types";
-// import { FeedWatcher } from "../feed-watcher/feed-watcher.utility";
 import { SchedulerRegistry } from "@nestjs/schedule";
 import { ContentFeedItem } from "../rss.types";
 import { FeedWatcher } from "../feed-watcher/feed-watcher.utility";
@@ -22,14 +19,14 @@ export class ContentListener {
 
   constructor(
     private eventEmitter: EventEmitter2,
-    schedulerRegistry: SchedulerRegistry,
+    private schedulerRegistry: SchedulerRegistry,
     feedUrl: string,
     options?: ContentListenerOptions
   ) {
-    this.processor = options.processor || ((item, showTitle: string) => item);
-    this.searchOptions = options.searchOptions || null;
+    this.processor = options.mapper || ((item, showTitle: string) => item);
+    this.searchOptions = options.searchOptions || {};
     // this.verifyEvent = this.verifyEvent.bind(this);
-    this.watcher = new FeedWatcher(schedulerRegistry, feedUrl);
+    this.watcher = new FeedWatcher(this.schedulerRegistry, feedUrl);
     this.token = options.token;
 
     this.watcher.on("ready", (entries) => {
@@ -38,8 +35,10 @@ export class ContentListener {
 
     this.watcher.on("init_error", (err) => {
       const [error] = handleError(err);
+      console.log(err);
+
       this.eventEmitter.emit("boot", {
-        key: `contentListener-${this.token}`,
+        key: this.token,
         status: false,
         message: error,
       });
@@ -57,7 +56,7 @@ export class ContentListener {
     this.fuse = new Fuse(this.episodes, this.searchOptions);
 
     this.eventEmitter.emit("boot", {
-      key: `contentListener-${this.token}`,
+      key: this.token,
       status: true,
       message: `${this.title} feed loaded with ${this.episodes.length} items.`,
     });
