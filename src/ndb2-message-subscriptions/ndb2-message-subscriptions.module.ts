@@ -6,5 +6,6 @@ import { Ndb2MessageSubscriptionService } from "./ndb2-message-subscriptions.ser
 @Module({
   imports: [TypeOrmModule.forFeature([Ndb2MessageSubscription])],
   providers: [Ndb2MessageSubscriptionService],
+  exports: [TypeOrmModule],
 })
 export class Ndb2MessageSubscriptionModule {}

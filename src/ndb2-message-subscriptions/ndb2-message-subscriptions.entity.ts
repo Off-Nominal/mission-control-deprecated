@@ -1,22 +1,24 @@
 import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
 
-@Entity()
+@Entity({
+  name: "ndb2_message_subscriptions",
+})
 export class Ndb2MessageSubscription {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
+  @Column("integer")
   prediction_id: number;
 
-  @Column()
+  @Column("varchar")
   type: string;
 
-  @Column()
+  @Column("varchar")
   channel_id: string;
 
-  @Column()
+  @Column("varchar", { nullable: true })
   message_id: string;
 
-  @Column()
+  @Column("timestamp without time zone")
   expiry: string;
 }
