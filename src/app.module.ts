@@ -14,6 +14,7 @@ import { EventsManagerModule } from "./events-manager/events-manager.module";
 import { NotificationsModule } from "./notifications/notifications.module";
 import { RSSModule } from "./rss/rss.module";
 import * as Joi from "joi";
+import { Users } from "./users/users.entity";
 
 @Module({
   imports: [
@@ -26,26 +27,27 @@ import * as Joi from "joi";
           .default("development"),
       }),
     }),
-    // UsersModule,
+    TypeOrmModule.forRootAsync({
+      imports: [ConfigModule],
+      useFactory: (configService: ConfigService) => ({
+        type: "postgres",
+        url: configService.get<string>("database.url"),
+        entities: [Users],
+        // synchronize: configService.get<string>("NODE_ENV") === "development",
+      }),
+      inject: [ConfigService],
+    }),
+    UsersModule,
+    NotificationsModule,
     // Ndb2MessageSubscriptionModule,
-    // TypeOrmModule.forRootAsync({
-    //   imports: [ConfigModule],
-    //   useFactory: (configService: ConfigService) => ({
-    //     type: "postgres",
-    //     url: configService.get<string>("database.url"),
-    //     autoLoadEntities: true,
-    //     // synchronize: true,
-    //   }),
-    //   inject: [ConfigService],
-    // }),
     ScheduleModule.forRoot(),
     EventEmitterModule.forRoot(),
     DiscordLoggerModule,
     DiscordClientsModule,
     ThreadDigestModule,
-    EventsManagerModule,
-    NotificationsModule,
-    RSSModule,
+    // EventsManagerModule,
+    // NotificationsModule,
+    // RSSModule,
   ],
   providers: [BootLoggerService],
 })

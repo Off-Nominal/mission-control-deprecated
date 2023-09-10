@@ -1,16 +1,16 @@
 import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity()
-export class User {
+export class Users {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
+  @Column("varchar", { unique: true })
   discord_id: string;
 
-  @Column()
+  @Column("boolean", { default: false })
   new_event: boolean;
 
-  @Column()
-  pre_notification: boolean;
+  @Column("integer", { nullable: true })
+  pre_notification: number;
 }

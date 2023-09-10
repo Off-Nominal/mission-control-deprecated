@@ -8,9 +8,15 @@ export type DiscordClientConfig = {
   appId?: string;
   presenceData: string;
   prefetchMembers: boolean;
+  subCommands?: Record<string, string>;
   partials: Partials[];
   intents: GatewayIntentBits[];
 };
+
+enum EventsInteractionSubCommand {
+  SUBSCRIBE = "subscribe",
+  UNSUBSCRIBE = "unsubscribe",
+}
 
 export const discordClients: Record<DiscordClient, DiscordClientConfig> = {
   [DiscordClient.HELPER]: {
@@ -38,6 +44,7 @@ export const discordClients: Record<DiscordClient, DiscordClientConfig> = {
     name: "Events Discord Client",
     presenceData: "/events help",
     prefetchMembers: false,
+    subCommands: EventsInteractionSubCommand,
     partials: [],
     intents: [
       GatewayIntentBits.Guilds,

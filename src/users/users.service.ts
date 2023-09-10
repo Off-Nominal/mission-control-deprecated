@@ -1,24 +1,47 @@
-import { Injectable } from "@nestjs/common";
+import { Global, Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
-import { User } from "./users.entity";
+import { Users } from "./users.entity";
 
 @Injectable()
 export class UsersService {
   constructor(
-    @InjectRepository(User)
-    private usersRepository: Repository<User>
+    @InjectRepository(Users)
+    private readonly usersRepository: Repository<Users>
   ) {}
 
-  findAll(): Promise<User[]> {
-    return this.usersRepository.find();
+  async setEventSubscriptions(
+    discord_id: string,
+    newEvent: undefined | boolean | null,
+    preEvent: undefined | number | null
+  ): Promise<Users> {
+    const subscribeSet = newEvent !== undefined;
+    const preEventSet = preEvent !== undefined;
+
+    const insertValues: Partial<Users> = {
+      discord_id,
+    };
+    const conflictArray: string[] = [];
+
+    if (subscribeSet) {
+      insertValues.new_event = newEvent || false;
+      conflictArray.push("new_event");
+    }
+
+    if (preEventSet) {
+      insertValues.pre_notification = preEvent || null;
+      conflictArray.push("pre_notification");
+    }
+
+    const user = await this.usersRepository
+      .createQueryBuilder()
+      .insert()
+      .into(Users)
+      .values(insertValues)
+      .orUpdate(conflictArray, ["discord_id"])
+      .returning(["id", "discord_id", "new_event", "pre_notification"])
+      .execute();
+
+    return user.raw[0];
   }
-
-  // findOne(id: number): Promise<User | null> {
-  //   return this.usersRepository.findOneBy({ id });
-  // }
-
-  // async remove(id: number): Promise<void> {
-  //   await this.usersRepository.delete(id);
-  // }
 }

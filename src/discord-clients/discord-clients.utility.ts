@@ -28,16 +28,18 @@ export const generateClientProvider = (clientName: DiscordClient): Provider => {
       configService: ConfigService,
       eventEmitter: EventEmitter2
     ) => {
+      const config = configService.get<DiscordClientConfig>(
+        `discordClients.${clientName}`
+      );
       const {
         critical,
         token,
         presenceData,
         prefetchMembers,
+        subCommands,
         partials,
         intents,
-      } = configService.get<DiscordClientConfig>(
-        `discordClients.${clientName}`
-      );
+      } = config;
 
       const client = new ExtendedClient({
         partials,
@@ -47,12 +49,32 @@ export const generateClientProvider = (clientName: DiscordClient): Provider => {
       client.on("ready", () => {
         client.user.setPresence(generatePresenceData(presenceData));
 
+        // Preload our guild into the client for easy access
         client.guild = client.guilds.cache.find(
           (guild) => guild.id === configService.get<string>("guildId")
         );
 
+        // Preload cache of guild members if needed
         if (prefetchMembers) {
           client.guild.members.fetch();
+        }
+      });
+
+      // Handle invalid subcommands, so service consuming this provider don't need to worry about them
+      client.on("interactionCreate", (interaction) => {
+        if (!interaction.isChatInputCommand()) return;
+
+        const { options } = interaction;
+        const subCommand = options.getSubcommand(false);
+
+        const allowedSubcommands = subCommands;
+
+        if (!Object.values(allowedSubcommands).includes(subCommand)) {
+          interaction.reply({
+            content:
+              "You've sent an invalid subcommand, somehow. Better let Jake know.",
+            ephemeral: true,
+          });
         }
       });
 
