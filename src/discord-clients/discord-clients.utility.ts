@@ -1,11 +1,11 @@
 import { Provider } from "@nestjs/common";
 import { DiscordClient, ExtendedClient } from "./discord-clients.types";
 import { ConfigService } from "@nestjs/config";
-import { DiscordClientConfig } from "src/config/configuration";
 
 import { ActivityType, PresenceData } from "discord.js";
 import { EventEmitter2 } from "@nestjs/event-emitter";
 import { handleError } from "src/helpers/handleError";
+import { DiscordClientConfig } from "src/config/discord-client.configuration";
 
 export default function generatePresenceData(
   helpCommand: string

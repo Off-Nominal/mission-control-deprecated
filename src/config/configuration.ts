@@ -1,5 +1,6 @@
 import { discordClients } from "./discord-client.configuration";
 import { rssFeeds } from "./content.configuration";
+import { DiscordClient } from "src/discord-clients/discord-clients.types";
 
 export default () => ({
   general: {
@@ -8,7 +9,29 @@ export default () => ({
   node: {
     env: process.env.NODE_ENV,
   },
-  discordClients,
+  discordClients: {
+    ...discordClients,
+    [DiscordClient.HELPER]: {
+      ...discordClients[DiscordClient.HELPER],
+      token: process.env.HELPER_BOT_TOKEN_ID,
+      appId: process.env.HELPER_BOT_APP_ID,
+    },
+    [DiscordClient.EVENTS]: {
+      ...discordClients[DiscordClient.EVENTS],
+      token: process.env.EVENTS_BOT_TOKEN_ID,
+      appId: process.env.EVENTS_BOT_APP_ID,
+    },
+    [DiscordClient.CONTENT]: {
+      ...discordClients[DiscordClient.CONTENT],
+      token: process.env.CONTENT_BOT_TOKEN_ID,
+      appId: process.env.CONTENT_BOT_APP_ID,
+    },
+    [DiscordClient.NDB2]: {
+      ...discordClients[DiscordClient.NDB2],
+      token: process.env.NDB2_BOT_TOKEN_ID,
+      appId: process.env.NDB2_BOT_APP_ID,
+    },
+  },
   guildChannels: {
     livechat: process.env.CHANNELID_LIVECHAT,
     bocachica: process.env.CHANNELID_BOCACHICA,
