@@ -1,8 +1,8 @@
-import { Global, Injectable } from "@nestjs/common";
+import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { User } from "./users.entity";
-import { ManagedEvent } from "src/events-manager/events-manager.types";
+import { Notifications } from "src/notifications/notifications.types";
 
 @Injectable()
 export class UsersService {
@@ -46,9 +46,9 @@ export class UsersService {
     return user.raw[0];
   }
 
-  async getSubscribersByType(type: ManagedEvent): Promise<User[]> {
+  async getSubscribersByType(type: Notifications.Event): Promise<User[]> {
     const col =
-      type === ManagedEvent.NEW
+      type === Notifications.Event.NEW_DISCORD
         ? "new_event = true"
         : "pre_notification = true";
     const subscribers = await this.usersRepository

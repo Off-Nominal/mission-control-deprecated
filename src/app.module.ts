@@ -15,7 +15,6 @@ import { NotificationsModule } from "./notifications/notifications.module";
 import { RSSModule } from "./rss/rss.module";
 import * as Joi from "joi";
 import { User } from "./users/users.entity";
-import { BootLoggerModule } from "./boot-logger/boot-logger.module";
 
 @Module({
   imports: [
@@ -43,18 +42,16 @@ import { BootLoggerModule } from "./boot-logger/boot-logger.module";
     EventEmitterModule.forRoot(),
 
     // Database Modules
-    // BootLoggerModule,
     UsersModule,
     Ndb2MessageSubscriptionModule,
 
     // Application Modules
     DiscordClientsModule,
-    NotificationsModule,
     DiscordLoggerModule,
+    NotificationsModule,
     ThreadDigestModule,
     EventsManagerModule,
     RSSModule,
-    // NotificationsModule,
   ],
   providers: [BootLoggerService],
 })

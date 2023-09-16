@@ -4,11 +4,11 @@ import {
   time,
   TimestampStyles,
 } from "discord.js";
-import { ManagedEvent } from "../events-manager.types";
+import { Notifications } from "src/notifications/notifications.types";
 
 export default function generateEventNotificationEmbed(
   event: GuildScheduledEvent,
-  type: ManagedEvent,
+  type: Notifications.Event,
   options?: {
     thumbnail?: string;
   }
@@ -17,7 +17,7 @@ export default function generateEventNotificationEmbed(
     options?.thumbnail ||
     "https://res.cloudinary.com/dj5enq03a/image/upload/v1642095232/Discord%20Assets/offnominal_2021-01_w4buun.png";
   const author =
-    type === ManagedEvent.PRE_EVENT
+    type === Notifications.Event.NEW_DISCORD
       ? "📅 Event Happening Soon!"
       : "🎉 New Live Event!";
 

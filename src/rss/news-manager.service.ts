@@ -125,7 +125,7 @@ export class NewsManagerService {
         }
 
         resolve(
-          `Successfully subscribed to ${successes}/${this.feeds.size} news feeds.`
+          `NEWS_MANAGER: Successfully subscribed to ${successes}/${this.feeds.size} news feeds.`
         );
       };
 

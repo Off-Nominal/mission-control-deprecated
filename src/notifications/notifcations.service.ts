@@ -12,8 +12,8 @@ import {
   ExtendedClient,
 } from "src/discord-clients/discord-clients.types";
 import { DiscordLoggerService } from "src/discord-logger/discord-logger.service";
-import { ManagedEvent } from "src/events-manager/events-manager.types";
 import { UsersService } from "src/users/users.service";
+import { Notifications } from "./notifications.types";
 
 @Injectable()
 export class NotificationsService {
@@ -119,31 +119,31 @@ export class NotificationsService {
     }
   }
 
-  public async notify(type: ManagedEvent, payload: MessageCreateOptions) {
-    const query = await this.users.getSubscribersByType(type);
-
-    const memberIds = query.map((user) => user.discord_id);
-    let subscribers: Collection<string, GuildMember>;
-
-    try {
-      subscribers = await this.eventsClient.guild.members.fetch({
+  private getSubscribersByType(type: Notifications.Event) {
+    return this.users.getSubscribersByType(type).then((users) => {
+      const memberIds = users.map((user) => user.discord_id);
+      return this.eventsClient.guild.members.fetch({
         user: memberIds,
       });
-    } catch (err) {
-      console.error("Failed to fetch User subscriber list on new event create");
-      return console.error(err);
-    }
+    });
+  }
 
-    subscribers.forEach(async (subscriber) => {
-      try {
-        const dmChannel = await subscriber.createDM();
-        await dmChannel.send(payload);
-      } catch (err) {
-        console.error(
-          `Error sending new event notificaiton to ${subscriber.displayName}`
+  public async notify(
+    type: Notifications.Event,
+    payload: MessageCreateOptions
+  ) {
+    this.getSubscribersByType(type).then((subscribers) => {
+      const promises = [];
+
+      subscribers.forEach(async (subscriber) => {
+        promises.push(
+          subscriber.createDM().then((dmChannel) => {
+            return dmChannel.send(payload);
+          })
         );
-        console.error(err);
-      }
+      });
+
+      return Promise.allSettled(promises);
     });
   }
 }

@@ -1,11 +1,5 @@
-import {
-  Inject,
-  Injectable,
-  OnApplicationBootstrap,
-  OnModuleInit,
-  forwardRef,
-} from "@nestjs/common";
-import { EventEmitter2, OnEvent } from "@nestjs/event-emitter";
+import { Inject, Injectable } from "@nestjs/common";
+import { OnEvent } from "@nestjs/event-emitter";
 import {
   DiscordLogger,
   DiscordLoggerService,
@@ -44,10 +38,10 @@ export class BootLoggerService {
   private bootAttempts: number = 0;
   private bootLog: BootLog = {
     // db: false,
-    [DiscordClient.HELPER]: true, // critical dependency
-    [DiscordClient.CONTENT]: true,
-    [DiscordClient.EVENTS]: true,
-    [DiscordClient.NDB2]: true,
+    [DiscordClient.HELPER]: false,
+    [DiscordClient.CONTENT]: false,
+    [DiscordClient.EVENTS]: false,
+    [DiscordClient.NDB2]: false,
     // starshipSiteChecker: false,
     // [ContentFeed.WEMARTIANS]: false,
     // [ContentFeed.RPR]: false,
@@ -79,26 +73,37 @@ export class BootLoggerService {
     this.loggerService.setContext(BootLoggerService.name);
     this.log = this.loggerService.new("Boot Log");
 
-    if (helperBot.isReady()) {
-      this.log.success("HELPER_BOT online.");
-    } else {
-      this.log.error("HELPER_BOT failed to start.");
-    }
-    if (contentBot.isReady()) {
-      this.log.success("CONTENT_BOT online.");
-    } else {
-      this.log.error("CONTENT_BOT failed to start.");
-    }
-    if (eventsBot.isReady()) {
-      this.log.success("EVENTS_BOT online.");
-    } else {
-      this.log.error("EVENTS_BOT failed to start.");
-    }
-    if (ndb2Bot.isReady()) {
-      this.log.success("NDB2_BOT online.");
-    } else {
-      this.log.error("NDB2_BOT failed to start.");
-    }
+    this.logBootEvent({
+      key: DiscordClient.HELPER,
+      status: helperBot.isReady(),
+      message: helperBot.isReady()
+        ? "HELPER_BOT online."
+        : "HELPER_BOT failed to start.",
+    });
+
+    this.logBootEvent({
+      key: DiscordClient.CONTENT,
+      status: contentBot.isReady(),
+      message: contentBot.isReady()
+        ? "CONTENT_BOT online."
+        : "CONTENT_BOT failed to start.",
+    });
+
+    this.logBootEvent({
+      key: DiscordClient.EVENTS,
+      status: eventsBot.isReady(),
+      message: eventsBot.isReady()
+        ? "EVENTS_BOT online."
+        : "EVENTS_BOT failed to start.",
+    });
+
+    this.logBootEvent({
+      key: DiscordClient.NDB2,
+      status: ndb2Bot.isReady(),
+      message: ndb2Bot.isReady()
+        ? "NDB2_BOT online."
+        : "NDB2_BOT failed to start.",
+    });
   }
 
   @Cron("* * * * * *", {
