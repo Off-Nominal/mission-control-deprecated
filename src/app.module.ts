@@ -18,7 +18,7 @@ import { User } from "./users/users.entity";
 
 @Module({
   imports: [
-    // Config
+    // Config and 1st Party
     ConfigModule.forRoot({
       load: [configuration],
       isGlobal: true,

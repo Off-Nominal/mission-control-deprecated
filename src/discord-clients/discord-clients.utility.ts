@@ -2,7 +2,7 @@ import { Provider } from "@nestjs/common";
 import { DiscordClient, ExtendedClient } from "./discord-clients.types";
 import { ConfigService } from "@nestjs/config";
 
-import { ActivityType, PresenceData } from "discord.js";
+import { ActivityType, PresenceData, ThreadChannel } from "discord.js";
 import { EventEmitter2 } from "@nestjs/event-emitter";
 import { handleError } from "src/helpers/handleError";
 import { DiscordClientConfig } from "src/config/discord-client.configuration";
@@ -36,6 +36,7 @@ export const generateClientProvider = (clientName: DiscordClient): Provider => {
         token,
         presenceData,
         prefetchMembers,
+        joinThreads,
         subCommands,
         partials,
         intents,
@@ -60,7 +61,7 @@ export const generateClientProvider = (clientName: DiscordClient): Provider => {
         }
       });
 
-      // Handle invalid subcommands, so service consuming this provider don't need to worry about them
+      // Handle invalid subcommands, so services consuming this provider don't need to worry about them
       client.on("interactionCreate", (interaction) => {
         if (!interaction.isChatInputCommand()) return;
 
@@ -77,6 +78,20 @@ export const generateClientProvider = (clientName: DiscordClient): Provider => {
           });
         }
       });
+
+      // Auto join threads if configured
+      if (joinThreads) {
+        client.on("threadCreate", async (thread: ThreadChannel) => {
+          if (!thread.joinable) {
+            return;
+          }
+          try {
+            await thread.join();
+          } catch (err) {
+            console.error(err);
+          }
+        });
+      }
 
       // Async factory awaits login of bot if deemed critical
       return await new Promise((resolve, reject) => {

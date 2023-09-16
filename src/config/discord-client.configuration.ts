@@ -8,6 +8,7 @@ export type DiscordClientConfig = {
   appId?: string;
   presenceData: string;
   prefetchMembers: boolean;
+  joinThreads: boolean;
   subCommands?: Record<string, string>;
   partials: Partials[];
   intents: GatewayIntentBits[];
@@ -24,6 +25,7 @@ export const discordClients: Record<DiscordClient, DiscordClientConfig> = {
     name: "Helper Discord Client",
     presenceData: "/help",
     prefetchMembers: true,
+    joinThreads: true,
     partials: [
       Partials.Message,
       Partials.Channel,
@@ -44,6 +46,7 @@ export const discordClients: Record<DiscordClient, DiscordClientConfig> = {
     name: "Events Discord Client",
     presenceData: "/events help",
     prefetchMembers: false,
+    joinThreads: false,
     subCommands: EventsInteractionSubCommand,
     partials: [],
     intents: [
@@ -58,6 +61,7 @@ export const discordClients: Record<DiscordClient, DiscordClientConfig> = {
     name: "Content Discord Client",
     presenceData: "/content help",
     prefetchMembers: false,
+    joinThreads: false,
     partials: [],
     intents: [
       GatewayIntentBits.Guilds,
@@ -71,6 +75,7 @@ export const discordClients: Record<DiscordClient, DiscordClientConfig> = {
 
     presenceData: "/ndb help",
     prefetchMembers: false,
+    joinThreads: false,
     partials: [],
     intents: [
       GatewayIntentBits.Guilds,
