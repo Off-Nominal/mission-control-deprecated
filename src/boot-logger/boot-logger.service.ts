@@ -17,13 +17,13 @@ type BootLog = {
   [DiscordClient.EVENTS]: boolean;
   [DiscordClient.NDB2]: boolean;
   // starshipSiteChecker: boolean;
-  [ContentFeed.WEMARTIANS]: boolean;
-  [ContentFeed.RPR]: boolean;
-  [ContentFeed.MECO]: boolean;
-  [ContentFeed.HEADLINES]: boolean;
-  [ContentFeed.OFFNOMINAL_PODCAST]: boolean;
-  [ContentFeed.OFFNOMINAL_HAPPY_HOUR]: boolean;
-  [ContentFeed.OFFNOMINAL_YT]: boolean;
+  // [ContentFeed.WEMARTIANS]: boolean;
+  // [ContentFeed.RPR]: boolean;
+  // [ContentFeed.MECO]: boolean;
+  // [ContentFeed.HEADLINES]: boolean;
+  // [ContentFeed.OFFNOMINAL_PODCAST]: boolean;
+  // [ContentFeed.OFFNOMINAL_HAPPY_HOUR]: boolean;
+  // [ContentFeed.OFFNOMINAL_YT]: boolean;
   // eventsListener: boolean;
   newsManager: boolean;
   // rllClient: boolean;
@@ -40,13 +40,13 @@ export class BootLoggerService {
     [DiscordClient.EVENTS]: false,
     [DiscordClient.NDB2]: false,
     // starshipSiteChecker: false,
-    [ContentFeed.WEMARTIANS]: false,
-    [ContentFeed.RPR]: false,
-    [ContentFeed.MECO]: false,
-    [ContentFeed.HEADLINES]: false,
-    [ContentFeed.OFFNOMINAL_PODCAST]: false,
-    [ContentFeed.OFFNOMINAL_HAPPY_HOUR]: false,
-    [ContentFeed.OFFNOMINAL_YT]: false,
+    // [ContentFeed.WEMARTIANS]: false,
+    // [ContentFeed.RPR]: false,
+    // [ContentFeed.MECO]: false,
+    // [ContentFeed.HEADLINES]: false,
+    // [ContentFeed.OFFNOMINAL_PODCAST]: false,
+    // [ContentFeed.OFFNOMINAL_HAPPY_HOUR]: false,
+    // [ContentFeed.OFFNOMINAL_YT]: false,
     // eventsListener: false,
     newsManager: false,
     // rllClient: false,

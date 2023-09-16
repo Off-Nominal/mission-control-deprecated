@@ -51,8 +51,8 @@ import { User } from "./users/users.entity";
     DiscordLoggerModule,
     ThreadDigestModule,
     EventsManagerModule,
+    RSSModule,
     // NotificationsModule,
-    // RSSModule,
   ],
   providers: [BootLoggerService],
 })

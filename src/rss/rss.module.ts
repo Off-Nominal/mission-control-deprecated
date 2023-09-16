@@ -10,6 +10,6 @@ const contentFeedProviders = Object.values(ContentFeed).map((feed) =>
 
 @Module({
   imports: [SanityModule],
-  providers: [NewsManagerService, ...contentFeedProviders],
+  providers: [NewsManagerService],
 })
 export class RSSModule {}

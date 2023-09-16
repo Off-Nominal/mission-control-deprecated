@@ -16,6 +16,7 @@ import {
   DiscordClient,
   ExtendedClient,
 } from "src/discord-clients/discord-clients.types";
+import { BootEvent } from "src/boot-logger/boot-logger.types";
 
 @Injectable()
 export class NewsManagerService {
@@ -36,30 +37,35 @@ export class NewsManagerService {
   ) {
     this.loggerService.setContext(NewsManagerService.name);
 
-    this.subscribeToCms(this.query);
+    const feeds = this.sanityService.client
+      .fetch<NewsFeedDocument[]>(this.query)
+      .then((feeds) => {
+        for (const feed of feeds) {
+          this.subscribe(feed);
+        }
+        this.subscribeToCms(this.query);
 
-    this.getFeeds(this.query).then((feeds) => {
-      for (const feed of feeds) {
-        this.subscribe(feed);
-      }
-    });
-
-    Promise.all([this.fetchChannel(), this.initialize()])
+        return Promise.all([this.fetchChannel(), this.initialize()]);
+      })
       .then(([channel, feedInitMessage]) => {
         this.channel = channel;
 
-        this.eventEmitter.emit("boot", {
+        const bootEvent: BootEvent = {
           key: "newsManager",
           status: true,
           message: feedInitMessage,
-        });
+        };
+
+        this.eventEmitter.emit("boot", bootEvent);
       })
       .catch((err) => {
-        this.eventEmitter.emit("boot", {
+        const bootEvent: BootEvent = {
           key: "newsManager",
           status: false,
           message: err.message,
-        });
+        };
+
+        this.eventEmitter.emit("boot", bootEvent);
       });
   }
 
@@ -70,37 +76,38 @@ export class NewsManagerService {
 
     this.feeds.set(feed._id, {
       data: { ...feed, thumbnail },
-      watcher: this.createWatcher(feed),
+      watcher: this.createWatcher({ ...feed, thumbnail }),
       status: "starting",
     });
   }
 
   private fetchChannel() {
-    return this.client.channels
-      .fetch(this.configService.get<string>("guildChannels.news"))
-      .then((channel) => {
-        if (channel.type !== ChannelType.GuildAnnouncement) {
-          throw new Error(
-            `News Manager target channel is not type Announcements.`
-          );
-        }
-        return channel;
-      });
+    const newsChannelId = this.configService.get<string>("guildChannels.news");
+
+    return this.client.channels.fetch(newsChannelId).then((channel) => {
+      if (channel.type !== ChannelType.GuildAnnouncement) {
+        throw new Error(
+          `News Manager target channel is not type Announcements.`
+        );
+      }
+      return channel;
+    });
   }
 
   private initialize() {
-    return new Promise((resolve, reject) => {
+    return new Promise<string>((resolve, reject) => {
       const checker = () => {
         let successes = 0;
         let isReady = true;
 
-        for (const _id in this.feeds) {
-          if (this.feeds.get(_id).status === "starting") {
+        const feeds = this.feeds.values();
+        for (const feed of feeds) {
+          if (feed.status === "starting") {
             isReady = false;
             break;
           }
 
-          if (this.feeds.get(_id).status === "ready") {
+          if (feed.status === "ready") {
             successes++;
           }
         }
@@ -125,25 +132,18 @@ export class NewsManagerService {
     });
   }
 
-  private getFeeds(query: string) {
-    return this.sanityService.client.fetch<NewsFeedDocument[]>(query);
-  }
-
-  private handleReady(entries: FeedParserEntry[]) {
-    const thresholdDate: Date = sub(new Date(), { days: 3 });
-
-    const recentEntries = entries.filter((entry) =>
-      isAfter(entry.pubDate, thresholdDate)
-    );
-    recentEntries.forEach((entry) => (this.entryUrls[entry.link] = true));
-  }
-
   private createWatcher(feed: NewsFeedDocument) {
     const watcher = new FeedWatcher(this.schedulerRegistry, feed.url);
 
     watcher.on("ready", (entries) => {
       this.feeds.get(feed._id).status = "ready";
-      this.handleReady(entries);
+
+      const thresholdDate: Date = sub(new Date(), { days: 3 });
+
+      const recentEntries = entries.filter((entry) =>
+        isAfter(entry.pubDate, thresholdDate)
+      );
+      recentEntries.forEach((entry) => (this.entryUrls[entry.link] = true));
     });
 
     watcher.on("init_error", (err) => {
@@ -152,23 +152,19 @@ export class NewsManagerService {
 
     watcher.on("new", (entries) => {
       for (const entry of entries) {
-        this.handleNew(entry, feed);
+        if (shouldFilter(entry, feed) || this.entryUrls[entry.link]) {
+          return;
+        }
+
+        this.entryUrls[entry.link] = true;
+        feed.diagnostic && console.log(entry);
+        this.notifyNew(newsFeedMapper(entry, feed.name, feed.thumbnail));
       }
     });
 
     watcher.start();
 
     return watcher;
-  }
-
-  private handleNew(entry: FeedParserEntry, feed: NewsFeedDocument) {
-    if (shouldFilter(entry, feed) || this.entryUrls[entry.link]) {
-      return;
-    }
-
-    this.entryUrls[entry.link] = true;
-    feed.diagnostic && console.log(entry);
-    this.notifyNew(newsFeedMapper(entry, feed.name, feed.thumbnail));
   }
 
   private unsubscribe(feedId: string) {
