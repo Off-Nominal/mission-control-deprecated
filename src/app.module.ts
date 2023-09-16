@@ -14,10 +14,11 @@ import { EventsManagerModule } from "./events-manager/events-manager.module";
 import { NotificationsModule } from "./notifications/notifications.module";
 import { RSSModule } from "./rss/rss.module";
 import * as Joi from "joi";
-import { Users } from "./users/users.entity";
+import { User } from "./users/users.entity";
 
 @Module({
   imports: [
+    // Config
     ConfigModule.forRoot({
       load: [configuration],
       isGlobal: true,
@@ -32,20 +33,24 @@ import { Users } from "./users/users.entity";
       useFactory: (configService: ConfigService) => ({
         type: "postgres",
         url: configService.get<string>("database.url"),
-        entities: [Users],
+        entities: [User],
         synchronize: false,
       }),
       inject: [ConfigService],
     }),
-    UsersModule,
-    NotificationsModule,
-    Ndb2MessageSubscriptionModule,
     ScheduleModule.forRoot(),
     EventEmitterModule.forRoot(),
-    DiscordLoggerModule,
+
+    // Database Modules
+    UsersModule,
+    Ndb2MessageSubscriptionModule,
+
+    // Application Modules
     DiscordClientsModule,
+    NotificationsModule,
+    DiscordLoggerModule,
     ThreadDigestModule,
-    // EventsManagerModule,
+    EventsManagerModule,
     // NotificationsModule,
     // RSSModule,
   ],

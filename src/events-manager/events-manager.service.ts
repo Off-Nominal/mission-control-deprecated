@@ -1,6 +1,10 @@
 import { Inject, Injectable } from "@nestjs/common";
 import { Cron, CronExpression } from "@nestjs/schedule";
-import { GuildScheduledEvent, GuildScheduledEventStatus } from "discord.js";
+import {
+  GuildScheduledEvent,
+  GuildScheduledEventStatus,
+  MessageCreateOptions,
+} from "discord.js";
 import { DiscordLoggerService } from "src/discord-logger/discord-logger.service";
 import { NotificationsService } from "src/notifications/notifcations.service";
 import generateEventNotificationEmbed from "./helpers/generateEventNotificationEmbed";
@@ -9,10 +13,11 @@ import {
   DiscordClient,
   ExtendedClient,
 } from "src/discord-clients/discord-clients.types";
+import { formatDistance } from "date-fns";
 
-const FIVE_MINS_IN_MS = 5 * 60 * 1000;
-const THIRTY_MINS_IN_MS = FIVE_MINS_IN_MS * 6;
-const THIRTY_FIVE_MINS_IN_MS = FIVE_MINS_IN_MS * 7;
+const MINUTE_IN_MS = 60 * 1000;
+const THIRTY_MINS_IN_MS = MINUTE_IN_MS * 30;
+const THIRTY_ONE_MINS_IN_MS = MINUTE_IN_MS * 31;
 
 @Injectable()
 export class EventsManagerService {
@@ -29,7 +34,7 @@ export class EventsManagerService {
     });
   }
 
-  @Cron(CronExpression.EVERY_5_MINUTES)
+  @Cron(CronExpression.EVERY_MINUTE)
   fetchEvents() {
     this.client.guild.scheduledEvents.fetch().then((events) => {
       const now = Date.now();
@@ -40,7 +45,7 @@ export class EventsManagerService {
         // Events 30 minutes out
         if (
           timeToStart >= THIRTY_MINS_IN_MS &&
-          timeToStart < THIRTY_FIVE_MINS_IN_MS
+          timeToStart < THIRTY_ONE_MINS_IN_MS
         ) {
           this.notify(ManagedEvent.PRE_EVENT, event);
         }
@@ -54,5 +59,12 @@ export class EventsManagerService {
   ) {
     // get applicable users with notifcations service
     const embed = generateEventNotificationEmbed(event, type);
+
+    const diff = formatDistance(new Date(), event.scheduledStartAt);
+
+    const messagePayload: MessageCreateOptions = {
+      content: `New Event: ${event.name} in ${diff}\n\nYou are receiving this DM because you subscribed via the \`/events\` command. If you want to change this, you can update your settings with \`/events subscribe\` or \`/events unsubscribe\` (note: This must be done in the server and not via DM.)`,
+      embeds: [embed],
+    };
   }
 }
