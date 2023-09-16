@@ -7,7 +7,6 @@ import { newsFeedMapper, shouldFilter } from "./news-manager.utility";
 import { isAfter, sub } from "date-fns";
 import { ContentFeedItem } from "./rss.types";
 import { SanityService } from "src/sanity/sanity.service";
-import { EventEmitter2 } from "@nestjs/event-emitter";
 import { ChannelType, NewsChannel } from "discord.js";
 import { ConfigService } from "@nestjs/config";
 import { createUniqueResultEmbed } from "./rss.utility";
@@ -17,6 +16,8 @@ import {
   ExtendedClient,
 } from "src/discord-clients/discord-clients.types";
 import { BootEvent } from "src/boot-logger/boot-logger.types";
+import { BootLoggerService } from "src/boot-logger/boot-logger.service";
+import { EventEmitter2 } from "@nestjs/event-emitter";
 
 @Injectable()
 export class NewsManagerService {

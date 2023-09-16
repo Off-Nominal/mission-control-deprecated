@@ -1,4 +1,4 @@
-import { ConsoleLogger, Inject, Injectable } from "@nestjs/common";
+import { ConsoleLogger, Inject, Injectable, forwardRef } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { ChannelType, EmbedBuilder, TimestampStyles, time } from "discord.js";
 import { Log, LogIcon } from "./discord-logger.types";
@@ -12,7 +12,6 @@ export class DiscordLogger {
   private date: Date = new Date();
 
   constructor(
-    @Inject(DiscordClient.HELPER)
     private client: ExtendedClient,
     private module: string,
     private method: string,
@@ -116,5 +115,9 @@ export class DiscordLoggerService extends ConsoleLogger {
 
   end(id: string) {
     delete this.logs[id];
+  }
+
+  registerClient(client: ExtendedClient) {
+    this.client = client;
   }
 }

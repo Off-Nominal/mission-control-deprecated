@@ -1,5 +1,11 @@
-import { Injectable } from "@nestjs/common";
-import { OnEvent } from "@nestjs/event-emitter";
+import {
+  Inject,
+  Injectable,
+  OnApplicationBootstrap,
+  OnModuleInit,
+  forwardRef,
+} from "@nestjs/common";
+import { EventEmitter2, OnEvent } from "@nestjs/event-emitter";
 import {
   DiscordLogger,
   DiscordLoggerService,
@@ -8,7 +14,10 @@ import { BootEvent } from "./boot-logger.types";
 import { ContentFeed } from "src/rss/rss.types";
 import { Cron, SchedulerRegistry } from "@nestjs/schedule";
 import { ConfigService } from "@nestjs/config";
-import { DiscordClient } from "src/discord-clients/discord-clients.types";
+import {
+  DiscordClient,
+  ExtendedClient,
+} from "src/discord-clients/discord-clients.types";
 
 type BootLog = {
   // db: boolean;
@@ -36,9 +45,9 @@ export class BootLoggerService {
   private bootLog: BootLog = {
     // db: false,
     [DiscordClient.HELPER]: true, // critical dependency
-    [DiscordClient.CONTENT]: false,
-    [DiscordClient.EVENTS]: false,
-    [DiscordClient.NDB2]: false,
+    [DiscordClient.CONTENT]: true,
+    [DiscordClient.EVENTS]: true,
+    [DiscordClient.NDB2]: true,
     // starshipSiteChecker: false,
     // [ContentFeed.WEMARTIANS]: false,
     // [ContentFeed.RPR]: false,
@@ -57,10 +66,39 @@ export class BootLoggerService {
   constructor(
     private loggerService: DiscordLoggerService,
     private scheduleRegistry: SchedulerRegistry,
-    private configService: ConfigService
+    private configService: ConfigService,
+    @Inject(DiscordClient.HELPER)
+    private helperBot: ExtendedClient,
+    @Inject(DiscordClient.CONTENT)
+    private contentBot: ExtendedClient,
+    @Inject(DiscordClient.EVENTS)
+    private eventsBot: ExtendedClient,
+    @Inject(DiscordClient.NDB2)
+    private ndb2Bot: ExtendedClient
   ) {
     this.loggerService.setContext(BootLoggerService.name);
     this.log = this.loggerService.new("Boot Log");
+
+    if (helperBot.isReady()) {
+      this.log.success("HELPER_BOT online.");
+    } else {
+      this.log.error("HELPER_BOT failed to start.");
+    }
+    if (contentBot.isReady()) {
+      this.log.success("CONTENT_BOT online.");
+    } else {
+      this.log.error("CONTENT_BOT failed to start.");
+    }
+    if (eventsBot.isReady()) {
+      this.log.success("EVENTS_BOT online.");
+    } else {
+      this.log.error("EVENTS_BOT failed to start.");
+    }
+    if (ndb2Bot.isReady()) {
+      this.log.success("NDB2_BOT online.");
+    } else {
+      this.log.error("NDB2_BOT failed to start.");
+    }
   }
 
   @Cron("* * * * * *", {
@@ -68,11 +106,11 @@ export class BootLoggerService {
   })
   public checkBoot() {
     this.bootAttempts++;
+    const maxCheckAttempts = this.configService.get<number>(
+      "general.bootAttempts"
+    );
 
-    if (
-      this.bootAttempts >=
-      this.configService.get<number>("general.bootAttempts")
-    ) {
+    if (this.bootAttempts >= maxCheckAttempts) {
       let failures = "";
 
       for (const item in this.bootLog) {
@@ -82,9 +120,7 @@ export class BootLoggerService {
       }
 
       this.log.error(
-        `Boot Checklist still incomplete after ${this.configService.get<number>(
-          "general.bootAttempts"
-        )} attempts, logger aborted. Failed items:\n${failures}`
+        `Boot Checklist still incomplete after ${maxCheckAttempts} attempts, logger aborted. Failed items:\n${failures}`
       );
       this.log.send();
       this.scheduleRegistry.deleteCronJob("bootLog");
@@ -96,15 +132,13 @@ export class BootLoggerService {
       }
     }
 
-    this.log.success(
-      "Boot Checklist complete. The Off-Nominal Discord Bot is online."
-    );
+    this.log.success("Boot checklist complete. Mission Control is online.");
     this.log.send();
     this.scheduleRegistry.deleteCronJob("bootLog");
   }
 
   @OnEvent("boot")
-  logBootload(payload: BootEvent) {
+  logBootEvent(payload: BootEvent) {
     if (payload.status) {
       this.log.success(payload.message);
     } else {
