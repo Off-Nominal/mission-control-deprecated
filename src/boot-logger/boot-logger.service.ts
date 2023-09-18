@@ -13,6 +13,8 @@ import {
   ExtendedClient,
 } from "src/discord-clients/discord-clients.types";
 
+const FALLBACK_BOOT_ATTEMPTS = 15;
+
 type BootLog = {
   // db: boolean;
   [DiscordClient.HELPER]: boolean;
@@ -111,9 +113,9 @@ export class BootLoggerService {
   })
   public checkBoot() {
     this.bootAttempts++;
-    const maxCheckAttempts = this.configService.get<number>(
-      "general.bootAttempts"
-    );
+    const maxCheckAttempts =
+      this.configService.get<number>("general.bootAttempts") ??
+      FALLBACK_BOOT_ATTEMPTS;
 
     if (this.bootAttempts >= maxCheckAttempts) {
       let failures = "";

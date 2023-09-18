@@ -5,6 +5,7 @@ import {
   Collection,
   EmbedBuilder,
   GuildMember,
+  Message,
   MessageCreateOptions,
 } from "discord.js";
 import {
@@ -133,7 +134,7 @@ export class NotificationsService {
     payload: MessageCreateOptions
   ) {
     this.getSubscribersByType(type).then((subscribers) => {
-      const promises = [];
+      const promises: Array<Promise<Message<false>>> = [];
 
       subscribers.forEach(async (subscriber) => {
         promises.push(

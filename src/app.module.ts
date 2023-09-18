@@ -15,6 +15,7 @@ import { NotificationsModule } from "./notifications/notifications.module";
 import { RSSModule } from "./rss/rss.module";
 import * as Joi from "joi";
 import { User } from "./users/users.entity";
+import { LaunchesModule } from './launches/launches.module';
 
 @Module({
   imports: [
@@ -52,6 +53,7 @@ import { User } from "./users/users.entity";
     ThreadDigestModule,
     EventsManagerModule,
     RSSModule,
+    LaunchesModule,
   ],
   providers: [BootLoggerService],
 })

@@ -40,6 +40,7 @@
     "joi": "^17.9.2",
     "pg": "^8.11.1",
     "reflect-metadata": "^0.1.13",
+    "rocket-launch-live-client": "^1.0.1",
     "rxjs": "^7.8.1",
     "string-strip-html": "8.5.0",
     "typeorm": "^0.3.17"

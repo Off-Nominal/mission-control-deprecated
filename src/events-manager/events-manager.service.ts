@@ -28,17 +28,24 @@ export class EventsManagerService {
   ) {
     this.loggerService.setContext(EventsManagerService.name);
 
+    // notification of new events
     this.client.on("guildScheduledEventCreate", (event) => {
       this.notify(Notifications.Event.NEW_DISCORD, event);
     });
   }
 
-  @Cron(CronExpression.EVERY_MINUTE)
+  // notification of events starting in next 24 hours
+  @Cron(CronExpression.EVERY_5_MINUTES)
   fetchEvents() {
     this.client.guild.scheduledEvents.fetch().then((events) => {
       const now = Date.now();
       events.forEach((event) => {
-        const startTime = event.scheduledStartAt.getTime();
+        const startTime = event.scheduledStartAt?.getTime();
+
+        if (!startTime) {
+          return;
+        }
+
         const timeToStart = startTime - now;
 
         if (timeToStart < ONE_DAY_IN_MINUTES) {
@@ -55,6 +62,10 @@ export class EventsManagerService {
     type: Notifications.Event,
     event: GuildScheduledEvent<GuildScheduledEventStatus>
   ) {
+    if (event.scheduledStartAt === null) {
+      return;
+    }
+
     const embed = generateEventNotificationEmbed(event, type);
 
     const diff = formatDistance(new Date(), event.scheduledStartAt);

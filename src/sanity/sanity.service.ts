@@ -4,6 +4,11 @@ import { SanityClient } from "@sanity/client";
 import { createClient } from "@sanity/client";
 const imageUrlBuilder = require("@sanity/image-url");
 
+export type RocketBanner = {
+  url: string;
+  credit: string;
+};
+
 @Injectable()
 export class SanityService {
   public client: SanityClient;
@@ -18,5 +23,29 @@ export class SanityService {
     });
 
     this.imageBuilder = imageUrlBuilder(this.client);
+  }
+
+  public fetchRocketBanner(id: number): Promise<RocketBanner | null> {
+    const query = `*[_type == "rocketBanner" && id == "${id.toString()}"]{banner, credit}`;
+
+    return this.client
+      .fetch<{ banner: string; credit: string }[]>(query)
+      .then(([response]) => {
+        if (!response?.banner) {
+          return null;
+        }
+
+        const bannerObj: RocketBanner = {
+          url: this.imageBuilder.image(response.banner).url(),
+          credit: response.credit,
+        };
+
+        return bannerObj;
+      })
+      .catch((err) => {
+        console.error(err);
+
+        return null;
+      });
   }
 }
